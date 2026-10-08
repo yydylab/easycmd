@@ -23,7 +23,6 @@ extracts the host name before running the native Windows command.
    ```
 
 Running `easycmd install` refreshes all EasyCMD macros and startup information.
-It also removes legacy ACMD macros for the current user.
 
 ## Version And Updates
 
