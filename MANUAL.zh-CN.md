@@ -38,8 +38,7 @@ nslookup abc.cn
 4. 关闭当前窗口并重新打开 CMD。
 
 `easycmd install` 会为当前用户写入
-`HKCU\Software\Microsoft\Command Processor\AutoRun`，刷新 EasyCMD 的全部宏和
-启动信息。
+`HKCU\Software\Microsoft\Command Processor\AutoRun`，刷新 EasyCMD 的全部宏和启动信息。
 
 ## 3. 版本、启动信息与更新
 
