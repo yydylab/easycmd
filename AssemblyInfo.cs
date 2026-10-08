@@ -1,7 +1,7 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("ACMD")]
-[assembly: AssemblyDescription("Advanced CMD command shortcuts")]
-[assembly: AssemblyProduct("ACMD")]
-[assembly: AssemblyVersion("0.1.7.0")]
-[assembly: AssemblyFileVersion("0.1.7.0")]
+[assembly: AssemblyTitle("EasyCMD")]
+[assembly: AssemblyDescription("Easy CMD network command shortcuts")]
+[assembly: AssemblyProduct("EasyCMD")]
+[assembly: AssemblyVersion("0.1.8.0")]
+[assembly: AssemblyFileVersion("0.1.8.0")]

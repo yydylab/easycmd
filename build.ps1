@@ -5,9 +5,9 @@ if (-not (Test-Path $compiler)) {
     throw "The .NET Framework C# compiler was not found: $compiler"
 }
 
-& $compiler /nologo /target:exe /platform:anycpu /optimize+ /r:System.Web.Extensions.dll /out:acmd.exe AssemblyInfo.cs Acmd.cs
+& $compiler /nologo /target:exe /platform:anycpu /optimize+ /r:System.Web.Extensions.dll /out:easycmd.exe AssemblyInfo.cs EasyCmd.cs
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "Built $((Resolve-Path .\acmd.exe).Path)"
+Write-Host "Built $((Resolve-Path .\easycmd.exe).Path)"

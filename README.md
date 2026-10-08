@@ -1,152 +1,80 @@
-# ACMD (Advanced CMD) User Guide
+# EasyCMD
 
 [中文操作手册](MANUAL.zh-CN.md) | [Download Releases](../../releases)
 
-## 1. Features
+EasyCMD provides convenient Windows CMD network-command shortcuts. `ping`,
+`tracert`, `nslookup`, and `pathping` can accept HTTP/HTTPS URLs; EasyCMD
+extracts the host name before running the native Windows command.
 
-ACMD provides shortcuts for common Windows CMD commands. It lets `ping`,
-`tracert`, `nslookup`, and `pathping` accept HTTP or HTTPS URLs directly.
-After you press Enter, ACMD extracts only the host name from the URL and then
-runs the Windows built-in command.
+## Installation
 
-Standard CMD commands support domain names only; they do not accept an HTTP URL:
-
-```cmd
-ping xxx.com
-tracert 123.com
-nslookup abc.cn
-```
-
-After installing ACMD, the following commands run with URL host extraction.
-You can paste URLs directly into the CMD command line:
-
-```cmd
-p https://xxx.com/aaa/ccc/jsidaoijd
-t https://123.com/login
-n https://abc.cn/1.html
-```
-
-## 2. Installation
-
-1. Download `acmd.exe` from the project's Releases page.
-2. Copy the file to `C:\Windows\System32`.
-3. Run the following command in any CMD window:
+1. Download `easycmd.exe` from Releases.
+2. Copy it to `C:\Windows\System32\easycmd.exe`.
+3. Run:
 
    ```cmd
-   acmd.exe install
+   easycmd install
    ```
 
-4. When installation is complete, open a new CMD window:
+4. Open a new CMD window:
 
    ```cmd
    start
    ```
 
-## 3. Everyday Use
+Running `easycmd install` refreshes all EasyCMD macros and startup information.
+It also removes legacy ACMD macros for the current user.
 
-Enter URLs directly. Do not use Markdown backticks or double quotes:
-
-```cmd
-p https://baidu.com
-```
-
-<img width="506" height="308" alt="ACMD ping URL example" src="https://github.com/user-attachments/assets/1c5052db-455c-4de6-a754-2fcc9a63d82c" />
+## Version And Updates
 
 ```cmd
-t wd https://www.baidu.com
+easycmd -v
+easycmd update
 ```
 
-<img width="483" height="422" alt="ACMD tracert URL example" src="https://github.com/user-attachments/assets/41a96cbd-6e24-4221-8e9f-99d5a63dfdae" />
+After `easycmd install`, every newly opened CMD window displays the EasyCMD
+version, copyright, and project URL before the prompt. `easycmd update`
+compares the local executable with the latest GitHub Release and upgrades it
+after UAC approval when needed.
 
-```cmd
-n https://www.baidu.com
-```
-
-<img width="445" height="188" alt="ACMD nslookup URL example" src="https://github.com/user-attachments/assets/ccba66c0-fab8-4aff-a7f4-d7b76e08adcf" />
-
-## 4. Command Shortcut Summary
+## Command Shortcut Summary
 
 | Shortcut | Actual command | Example | Extension |
 | --- | --- | --- | --- |
-| `p` | `ping` | `p www.baidu.com` | `p t baidu.com` -> `ping -t baidu.com`<br>`p https://github.com/user/repo` -> `ping github.com` |
-| `t` | `tracert` | `t www.baidu.com` | `t dw baidu.com` -> `tracert -d -w 1 baidu.com`<br>`t wd baidu.com` -> `tracert -w 1 -d baidu.com` |
-| `n` | `nslookup` | `n www.baidu.com` | `n https://example.com/path` -> `nslookup example.com` |
-| `a` | `arp` | `a -a` | Pass native `arp` options directly. |
-| `s` | `ssh` | `s user@192.168.1.1` | For example: `s -p 2222 user@host`. |
+| `p` | `ping` | `p https://example.com/path` | `p t example.com` -> `ping -t example.com` |
+| `t` | `tracert` | `t https://example.com/path` | `t dw example.com` -> `tracert -d -w 1 example.com`<br>`t wd example.com` -> `tracert -w 1 -d example.com` |
+| `n` | `nslookup` | `n https://example.com/path` | Extracts the URL host name. |
+| `a` | `arp` | `a -a` | Pass native options directly. |
+| `s` | `ssh` | `s user@host` | Pass native options directly. |
 | `c` | `curl` | `c https://example.com` | `c c` -> `curl cip.cc`<br>`c i` -> `curl ipinfo.io` |
-| `cc` | `curl cip.cc` | `cc` | Quickly query IP and location information from `cip.cc`. |
-| `ci` | `curl ipinfo.io` | `ci` | Quickly query IP metadata from `ipinfo.io`. |
-| `f` | `ftp` | `f ftp.example.com` | Pass native `ftp` options directly. |
-| `m` | `mstsc` | `m 192.168.1.1` | `m 192.168.1.1` -> `mstsc /v:192.168.1.1:3389`<br>`m 192.168.1.1:53389` -> `mstsc /v:192.168.1.1:53389` |
-| `pa` | `pathping` | `pa www.baidu.com` | `pa https://example.com/path` -> `pathping example.com` |
-| `tp` | `tcping` | `tp 192.168.1.200 3389` | `tp 192.168.1.200` -> `tcping 192.168.1.200 22`.<br>Requires [tcping.exe](https://github.com/pouriyajamshidi/tcping) to be installed and available in `PATH` or `System32`. |
-| `te` | `telnet` | `te 192.168.1.1 23` | Enable the Windows Telnet Client optional feature first. |
-| `i` | `ipconfig` | `i` | `i a` -> `ipconfig /all`<br>`i f` -> `ipconfig /flushdns` |
-| `ia` | `ipconfig /all` | `ia` | Quickly show complete configuration details for all network adapters. |
-| `if` | `ipconfig /flushdns` | `if` | Quickly clear the local DNS resolver cache. |
-| `g` | `getmac` | `g /v` | Pass native `getmac` options directly. |
-| `ne` | `netsh` | `ne interface ip show config` | Pass native `netsh` contexts and options directly. |
-| `r` | `route` | `r p` -> `route print` | `r p 4` -> `route print -4`<br>`r p 6` -> `route print -6`<br>`r a 223.5.5.5 32 192.168.1.1` -> `route add 223.5.5.5 mask 255.255.255.255 192.168.1.1`<br>`r d 223.5.5.5 32 192.168.1.1` -> `route delete 223.5.5.5 mask 255.255.255.255 192.168.1.1` |
-| `rp` | `route print` | `rp` | `rp4` -> `route print -4`<br>`rp6` -> `route print -6` |
-| `nb` | `nbtstat` | `nb -n` | Pass native `nbtstat` options directly. |
+| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc` / `ci` | Direct IP information shortcuts. |
+| `f` | `ftp` | `f ftp.example.com` | Pass native options directly. |
+| `m` | `mstsc` | `m 192.168.1.1` | Defaults to port `3389`. |
+| `pa` | `pathping` | `pa https://example.com/path` | Extracts the URL host name. |
+| `tp` | `tcping` | `tp 192.168.1.200 3389` | Defaults to SSH port `22`; requires [tcping.exe](https://github.com/pouriyajamshidi/tcping) in `PATH` or `System32`. |
+| `te` | `telnet` | `te 192.168.1.1 23` | Requires Windows Telnet Client. |
+| `i` | `ipconfig` | `i a` / `i f` | `i a` -> `ipconfig /all`<br>`i f` -> `ipconfig /flushdns` |
+| `ia` / `if` | `ipconfig /all` / `ipconfig /flushdns` | `ia` / `if` | Direct IP configuration shortcuts. |
+| `g` | `getmac` | `g /v` | Pass native options directly. |
+| `ne` | `netsh` | `ne interface ip show config` | Pass native contexts and options directly. |
+| `r` | `route` | `r p` | `r p 4` -> `route print -4`<br>`r p 6` -> `route print -6`<br>`r a <destination> <CIDR> <gateway>` |
+| `rp` / `rp4` / `rp6` | `route print` | `rp4` | `rp` -> `route print`<br>`rp4` -> `route print -4`<br>`rp6` -> `route print -6` |
+| `nb` | `nbtstat` | `nb -n` | Pass native options directly. |
 
-The route add/delete syntax is
-`r <a|d> <destination> <CIDR prefix> <gateway>`. ACMD converts a valid IPv4
-prefix from `0` through `32` to the subnet mask required by `route`.
-
-## 5. Version And Startup Information
-
-Run this command in CMD to display the ACMD version, copyright, and project
-URL:
+## Uninstall
 
 ```cmd
-acmd -v
+easycmd uninstall
 ```
 
-After running `acmd install`, this information is displayed before the prompt
-in every newly opened CMD window.
+This removes only EasyCMD macros from the current user's CMD AutoRun setting.
 
-## 6. Updates
-
-Run this command to compare the local version with the latest GitHub Release:
-
-```cmd
-acmd update
-```
-
-When a newer version is available, ACMD downloads and validates the latest
-`acmd.exe`, then requests one UAC approval to replace the program. Once the
-replacement finishes, it opens a new CMD window automatically. Updating an
-ACMD installation in `C:\Windows\System32` requires that UAC approval.
-
-## 7. Uninstall ACMD
-
-Run this command in any CMD window:
-
-```cmd
-acmd.exe uninstall
-```
-
-Then open a new CMD window. This removes only macros added by ACMD.
-
-## 8. Build And Test (Developers)
-
-Run the following in Windows PowerShell:
+## Build And Test
 
 ```powershell
 .\build.ps1
 .\test.ps1
 ```
 
-The project uses the Windows built-in .NET Framework C# compiler and has no
-third-party dependencies.
-
-## 9. Notes
-
-- Only arguments that begin with `http://` or `https://` are converted.
-- `ping`, `tracert`, `nslookup`, and `pathping` extract the host name from an
-  HTTP/HTTPS URL. `c` (`curl`) preserves the full URL.
-- URL paths, query parameters, fragments, credentials, and ports are not
-  passed to network commands.
-- `acmd.exe` starts native commands from `System32` directly and does not use
-  `cmd /c`.
+EasyCMD uses the built-in .NET Framework C# compiler and has no third-party
+runtime dependencies.

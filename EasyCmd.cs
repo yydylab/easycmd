@@ -9,14 +9,16 @@ using System.Reflection;
 using System.Web.Script.Serialization;
 using Microsoft.Win32;
 
-internal static class Acmd
+internal static class EasyCmd
 {
     private const string CommandProcessorKey = @"Software\Microsoft\Command Processor";
-    private const string MacroMarker = "acmd.exe\" run ping $*";
-    private const string BannerMarker = "acmd.exe\" banner";
+    private const string MacroMarker = "easycmd.exe\" run ping $*";
+    private const string BannerMarker = "easycmd.exe\" banner";
+    private const string LegacyAcmdMacroMarker = "acmd.exe\" run ping $*";
+    private const string LegacyAcmdBannerMarker = "acmd.exe\" banner";
     private const string LegacyMacroMarker = "doskey ping=\"";
-    private const string ProjectUrl = "https://github.com/yydylab/acmd";
-    private const string LatestReleaseApi = "https://api.github.com/repos/yydylab/acmd/releases/latest";
+    private const string ProjectUrl = "https://github.com/yydylab/easycmd";
+    private const string LatestReleaseApi = "https://api.github.com/repos/yydylab/easycmd/releases/latest";
 
     private static readonly IDictionary<string, string> Aliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -86,12 +88,13 @@ internal static class Acmd
         {
             string current = key.GetValue("AutoRun", string.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames) as string ?? string.Empty;
             current = RemoveLegacyMacroGroup(current);
+            current = RemoveMacroGroup(current, LegacyAcmdMacroMarker);
             current = RemoveMacroGroup(current, MacroMarker);
             string updated = string.IsNullOrWhiteSpace(current) ? macro : current + " & " + macro;
             key.SetValue("AutoRun", updated, RegistryValueKind.String);
         }
 
-        Console.WriteLine("Installed or updated. Open a new CMD window to use ACMD shortcuts.");
+        Console.WriteLine("Installed or updated. Open a new CMD window to use EasyCMD shortcuts.");
         return 0;
     }
 
@@ -112,11 +115,11 @@ internal static class Acmd
                 return 0;
             }
 
-            Console.WriteLine("Downloading ACMD v{0}...", release.Version);
-            string downloadedFile = Path.Combine(Path.GetTempPath(), "acmd-" + Guid.NewGuid().ToString("N") + ".exe");
+            Console.WriteLine("Downloading EasyCMD v{0}...", release.Version);
+            string downloadedFile = Path.Combine(Path.GetTempPath(), "easycmd-" + Guid.NewGuid().ToString("N") + ".exe");
             using (var client = new WebClient())
             {
-                client.Headers[HttpRequestHeader.UserAgent] = "acmd-updater";
+                client.Headers[HttpRequestHeader.UserAgent] = "easycmd-updater";
                 client.DownloadFile(release.DownloadUrl, downloadedFile);
             }
 
@@ -124,7 +127,7 @@ internal static class Acmd
             if (downloadedVersion != release.Version)
             {
                 File.Delete(downloadedFile);
-                throw new InvalidOperationException("The downloaded ACMD version does not match the GitHub Release.");
+                throw new InvalidOperationException("The downloaded EasyCMD version does not match the GitHub Release.");
             }
 
             StartUpdater(downloadedFile, Process.GetCurrentProcess().MainModule.FileName);
@@ -143,7 +146,7 @@ internal static class Acmd
         string json;
         using (var client = new WebClient())
         {
-            client.Headers[HttpRequestHeader.UserAgent] = "acmd-updater";
+            client.Headers[HttpRequestHeader.UserAgent] = "easycmd-updater";
             json = client.DownloadString(LatestReleaseApi);
         }
 
@@ -157,7 +160,7 @@ internal static class Acmd
         {
             var asset = item as Dictionary<string, object>;
             if (asset != null
-                && string.Equals(asset["name"] as string, "acmd.exe", StringComparison.OrdinalIgnoreCase))
+                && string.Equals(asset["name"] as string, "easycmd.exe", StringComparison.OrdinalIgnoreCase))
             {
                 downloadUrl = asset["browser_download_url"] as string;
                 break;
@@ -165,7 +168,7 @@ internal static class Acmd
         }
 
         if (string.IsNullOrEmpty(downloadUrl))
-            throw new InvalidOperationException("The latest GitHub Release does not include acmd.exe.");
+            throw new InvalidOperationException("The latest GitHub Release does not include easycmd.exe.");
 
         return new ReleaseInfo
         {
@@ -191,7 +194,7 @@ internal static class Acmd
 
     private static void StartUpdater(string downloadedFile, string targetFile)
     {
-        string script = Path.Combine(Path.GetTempPath(), "acmd-update-" + Guid.NewGuid().ToString("N") + ".cmd");
+        string script = Path.Combine(Path.GetTempPath(), "easycmd-update-" + Guid.NewGuid().ToString("N") + ".cmd");
         File.WriteAllLines(script, new[]
         {
             "@echo off",
@@ -219,7 +222,7 @@ internal static class Acmd
             int markerIndex = current.IndexOf(MacroMarker, StringComparison.OrdinalIgnoreCase);
             if (markerIndex < 0)
             {
-                Console.WriteLine("ACMD is not installed for the current user.");
+                Console.WriteLine("EasyCMD is not installed for the current user.");
                 return 0;
             }
 
@@ -231,7 +234,7 @@ internal static class Acmd
                 key.SetValue("AutoRun", updated, RegistryValueKind.String);
         }
 
-        Console.WriteLine("Uninstalled. New CMD windows will no longer load ACMD macros.");
+        Console.WriteLine("Uninstalled. New CMD windows will no longer load EasyCMD macros.");
         return 0;
     }
 
@@ -246,7 +249,7 @@ internal static class Acmd
     {
         if (args.Length == 0 || !IsSupportedCommand(args[0]))
         {
-            Console.Error.WriteLine("ACMD only runs supported Windows network commands.");
+            Console.Error.WriteLine("EasyCMD only runs supported Windows network commands.");
             return 1;
         }
 
@@ -281,7 +284,7 @@ internal static class Acmd
     {
         if (args.Length == 0 || !IsSupportedCommand(args[0]))
         {
-            Console.Error.WriteLine("Usage: acmd.exe normalize <command> [arguments]");
+            Console.Error.WriteLine("Usage: easycmd.exe normalize <command> [arguments]");
             return 1;
         }
 
@@ -480,9 +483,13 @@ internal static class Acmd
         int segmentStart = current.LastIndexOf(" & ", markerIndex, StringComparison.Ordinal);
         segmentStart = segmentStart < 0 ? 0 : segmentStart + 3;
 
-        if (string.Equals(marker, MacroMarker, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(marker, MacroMarker, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(marker, LegacyAcmdMacroMarker, StringComparison.OrdinalIgnoreCase))
         {
-            int bannerIndex = current.LastIndexOf(BannerMarker, markerIndex, StringComparison.OrdinalIgnoreCase);
+            string bannerMarker = string.Equals(marker, MacroMarker, StringComparison.OrdinalIgnoreCase)
+                ? BannerMarker
+                : LegacyAcmdBannerMarker;
+            int bannerIndex = current.LastIndexOf(bannerMarker, markerIndex, StringComparison.OrdinalIgnoreCase);
             if (bannerIndex >= 0)
             {
                 segmentStart = current.LastIndexOf(" & ", bannerIndex, StringComparison.Ordinal);
@@ -592,18 +599,18 @@ internal static class Acmd
 
     private static void PrintUsage()
     {
-        Console.WriteLine("ACMD (Advanced CMD) - CMD network command shortcuts.");
-        Console.WriteLine("  acmd.exe -v");
-        Console.WriteLine("  acmd.exe update");
-        Console.WriteLine("  acmd.exe install");
-        Console.WriteLine("  acmd.exe uninstall");
-        Console.WriteLine("  acmd.exe normalize ping https://example.com/path");
+        Console.WriteLine("EasyCMD - easy CMD network command shortcuts.");
+        Console.WriteLine("  easycmd.exe -v");
+        Console.WriteLine("  easycmd.exe update");
+        Console.WriteLine("  easycmd.exe install");
+        Console.WriteLine("  easycmd.exe uninstall");
+        Console.WriteLine("  easycmd.exe normalize ping https://example.com/path");
     }
 
     private static void PrintBanner()
     {
         Version version = Assembly.GetExecutingAssembly().GetName().Version;
-        Console.WriteLine("acmd v{0}", version);
+        Console.WriteLine("easycmd v{0}", version);
         Console.WriteLine("Copyright (c) 2026 yydylab");
         Console.WriteLine(ProjectUrl);
     }

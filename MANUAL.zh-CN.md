@@ -1,139 +1,100 @@
-# ACMD（Advanced CMD）使用操作手册
+# EasyCMD 使用操作手册
 
 ## 1. 功能说明
 
-ACMD 为 Windows CMD 提供常用命令简写，并让 `ping`、`tracert`、`nslookup`、
-`pathping` 等可直接接受 HTTP 或 HTTPS 网址。按下 Enter 后，程序仅提取网址中的
-主机名，再调用 Windows 自带命令。
-
-常规cmd命令,只支持输入域名，不能带http协议
+EasyCMD 为 Windows CMD 提供常用网络命令简写。`ping`、`tracert`、`nslookup`、
+`pathping` 可直接接受 HTTP/HTTPS 网址；按下 Enter 后，EasyCMD 会提取网址主机名，
+再调用 Windows 原生命令。
 
 ```cmd
-ping xxx.com
+p https://github.com/chrisant996/clink
+t https://123.com/admin
+n https://abc.cn/path
+```
+
+实际执行为：
+
+```cmd
+ping github.com
 tracert 123.com
 nslookup abc.cn
 ```
 
-安装acmd之后，对应实际执行的命令如下：(支持直接将网址粘贴到cmd命令行中)
-
-```cmd
-p https://xxx.com/aaa/ccc/jsidaoijd
-t https://123.com/login
-n https://abc.cn/1.html
-```
-
 ## 2. 安装
 
-1. 从项目的 Releases 页面下载 `acmd.exe`。
-2. 将文件复制到系统目录 `C:\Windows\System32`。
+1. 从 Releases 下载 `easycmd.exe`。
+2. 以管理员身份打开 CMD 或 PowerShell，并复制程序：
+
+   ```cmd
+   copy easycmd.exe C:\Windows\System32\easycmd.exe
+   ```
+
 3. 在任意 CMD 中执行：
 
    ```cmd
-   acmd.exe install
+   easycmd install
    ```
 
-4. 待安装完成，重新打开一个 CMD 窗口。
+4. 关闭当前窗口并重新打开 CMD。
 
-   ```cmd
-   start
-   ```
-   
-## 3. 日常使用
+`easycmd install` 会为当前用户写入
+`HKCU\Software\Microsoft\Command Processor\AutoRun`，刷新 EasyCMD 的全部宏和
+启动信息，并自动清理旧版 ACMD 宏。
 
-直接输入网址，不要使用 Markdown 反引号，或双引号：
+## 3. 版本、启动信息与更新
 
 ```cmd
-p https://baidu.com
+easycmd -v
+easycmd update
 ```
-<img width="506" height="308" alt="image" src="https://github.com/user-attachments/assets/1c5052db-455c-4de6-a754-2fcc9a63d82c" />
 
-```cmd
-t wd https://www.baidu.com
-```
-<img width="483" height="422" alt="image" src="https://github.com/user-attachments/assets/41a96cbd-6e24-4221-8e9f-99d5a63dfdae" />
+执行 `easycmd install` 后，每次新开 CMD 窗口都会在提示符前显示 EasyCMD 的版本、
+版权和项目地址。`easycmd update` 会检查 GitHub 最新 Release；有新版本时下载并请求
+UAC 授权完成替换。
 
-```cmd
-n https://www.baidu.com
-```
-<img width="445" height="188" alt="image" src="https://github.com/user-attachments/assets/ccba66c0-fab8-4aff-a7f4-d7b76e08adcf" />
-
-## 4. 命令简写汇总
+## 4. 命令简写
 
 | 简写 | 实际命令 | 案例 | 拓展 |
 | --- | --- | --- | --- |
-| `p` | `ping` | `p www.baidu.com` | `p t baidu.com` -> `ping -t baidu.com`<br>`p https://github.com/user/repo` -> `ping github.com` |
-| `t` | `tracert` | `t www.baidu.com` | `t dw baidu.com` -> `tracert -d -w 1 baidu.com`<br>`t wd baidu.com` -> `tracert -w 1 -d baidu.com` |
-| `n` | `nslookup` | `n www.baidu.com` | `n https://example.com/path` -> `nslookup example.com` |
-| `a` | `arp` | `a -a` | 原生 `arp` 参数可直接传入。 |
-| `s` | `ssh` | `s user@192.168.1.1` | 例如：`s -p 2222 user@host`。 |
+| `p` | `ping` | `p https://example.com/path` | `p t example.com` -> `ping -t example.com` |
+| `t` | `tracert` | `t https://example.com/path` | `t dw example.com` -> `tracert -d -w 1 example.com`<br>`t wd example.com` -> `tracert -w 1 -d example.com` |
+| `n` | `nslookup` | `n https://example.com/path` | 自动提取网址主机名。 |
+| `a` | `arp` | `a -a` | 原生参数可直接传入。 |
+| `s` | `ssh` | `s user@host` | 原生参数可直接传入。 |
 | `c` | `curl` | `c https://example.com` | `c c` -> `curl cip.cc`<br>`c i` -> `curl ipinfo.io` |
-| `cc` | `curl cip.cc` | `cc` | 快速查询 `cip.cc` 的 IP 与归属地信息。 |
-| `ci` | `curl ipinfo.io` | `ci` | 快速查询 `ipinfo.io` 的 IP 元数据信息。 |
-| `f` | `ftp` | `f ftp.example.com` | 原生 `ftp` 参数可直接传入。 |
-| `m` | `mstsc` | `m 192.168.1.1` | `m 192.168.1.1` -> `mstsc /v:192.168.1.1:3389`<br>`m 192.168.1.1:53389` -> `mstsc /v:192.168.1.1:53389` |
-| `pa` | `pathping` | `pa www.baidu.com` | `pa https://example.com/path` -> `pathping example.com` |
-| `tp` | `tcping` | `tp 192.168.1.200 3389` | `tp 192.168.1.200` -> `tcping 192.168.1.200 22`。<br>需先安装 [tcping.exe](https://github.com/pouriyajamshidi/tcping)，并确保它可通过 `PATH` 或 `System32` 找到。 |
-| `te` | `telnet` | `te 192.168.1.1 23` | 需先启用 Windows Telnet Client 可选功能。 |
-| `i` | `ipconfig` | `i` | `i a` -> `ipconfig /all`<br>`i f` -> `ipconfig /flushdns` |
-| `ia` | `ipconfig /all` | `ia` | 快速显示所有网络适配器的完整配置信息。 |
-| `if` | `ipconfig /flushdns` | `if` | 快速清除本机 DNS 解析缓存。 |
-| `g` | `getmac` | `g /v` | 原生 `getmac` 参数可直接传入。 |
-| `ne` | `netsh` | `ne interface ip show config` | 原生 `netsh` 上下文与参数可直接传入。 |
-| `r` | `route` | `r p` -> `route print` | `r p 4` -> `route print -4`<br>`r p 6` -> `route print -6`<br>`r a 223.5.5.5 32 192.168.1.1` -> `route add 223.5.5.5 mask 255.255.255.255 192.168.1.1`<br>`r d 223.5.5.5 32 192.168.1.1` -> `route delete 223.5.5.5 mask 255.255.255.255 192.168.1.1` |
-| `rp` | `route print` | `rp` | `rp4` -> `route print -4`<br>`rp6` -> `route print -6` |
-| `nb` | `nbtstat` | `nb -n` | 原生 `nbtstat` 参数可直接传入。 |
+| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc` / `ci` | 快速查询 IP 信息。 |
+| `f` | `ftp` | `f ftp.example.com` | 原生参数可直接传入。 |
+| `m` | `mstsc` | `m 192.168.1.1` | 未指定时默认端口 `3389`。 |
+| `pa` | `pathping` | `pa https://example.com/path` | 自动提取网址主机名。 |
+| `tp` | `tcping` | `tp 192.168.1.200 3389` | 未带端口时默认 SSH `22`；需安装 [tcping.exe](https://github.com/pouriyajamshidi/tcping) 并放入 `PATH` 或 `System32`。 |
+| `te` | `telnet` | `te 192.168.1.1 23` | 需启用 Windows Telnet Client。 |
+| `i` | `ipconfig` | `i a` / `i f` | `i a` -> `ipconfig /all`<br>`i f` -> `ipconfig /flushdns` |
+| `ia` / `if` | `ipconfig /all` / `ipconfig /flushdns` | `ia` / `if` | 直接显示配置或清理 DNS 缓存。 |
+| `g` | `getmac` | `g /v` | 原生参数可直接传入。 |
+| `ne` | `netsh` | `ne interface ip show config` | 原生上下文与参数可直接传入。 |
+| `r` | `route` | `r p` | `r p 4` -> `route print -4`<br>`r p 6` -> `route print -6`<br>`r a <目标> <CIDR> <网关>` |
+| `rp` / `rp4` / `rp6` | `route print` | `rp4` | `rp` -> `route print`<br>`rp4` -> `route print -4`<br>`rp6` -> `route print -6` |
+| `nb` | `nbtstat` | `nb -n` | 原生参数可直接传入。 |
 
-路由添加和删除的格式为
-`r <a|d> <目标地址> <CIDR 前缀> <网关>`。ACMD 会将合法 IPv4 前缀（`0` 至
-`32`）转换为 `route` 所需的子网掩码。
-
-## 5. 版本与启动信息
-
-在 CMD 中执行以下命令可显示 ACMD 当前版本、版权和项目地址：
+## 5. 卸载
 
 ```cmd
-acmd -v
+easycmd uninstall
 ```
 
-执行 `acmd install` 后，每次新开 CMD 窗口都会在提示符前自动显示这组信息。
+该操作仅移除当前用户的 EasyCMD 宏。
 
-## 6. 更新升级
-
-执行以下命令可比对本机版本和 GitHub 最新 Release：
-
-```cmd
-acmd update
-```
-
-检测到新版本时，ACMD 会下载并校验最新 `acmd.exe`，随后请求一次 UAC 管理员授权以
-替换程序。替换完成后会自动打开新的 CMD 窗口。程序安装在
-`C:\Windows\System32` 时，升级必须通过该 UAC 授权。
-
-## 7. 卸载acmd
-
-任意cmd窗口执行：
-
-```cmd
-acmd.exe uninstall
-```
-
-然后重新打开 CMD。该操作只移除 ACMD 添加的宏。
-
-## 8. 构建与测试（开发者）
-
-在 Windows PowerShell 中运行：
+## 6. 构建与测试
 
 ```powershell
 .\build.ps1
 .\test.ps1
 ```
 
-项目使用 Windows 自带的 .NET Framework C# 编译器，不依赖第三方包。
+EasyCMD 使用 Windows 自带的 .NET Framework C# 编译器，不依赖第三方运行时组件。
 
-## 9. 注意事项
+## 7. 注意事项
 
 - 仅转换以 `http://` 或 `https://` 开头的参数。
-- `ping`、`tracert`、`nslookup`、`pathping` 会提取 HTTP/HTTPS URL 的主机名；
-  `c`（`curl`）保留完整 URL。
-- URL 的路径、查询参数、片段、账号信息和端口不会传给网络命令。
-- `acmd.exe` 会直接启动 `System32` 中的原生命令，不使用 `cmd /c`。
+- `curl` 会保留完整 URL。
+- `easycmd.exe` 直接启动原生命令，不使用 `cmd /c`。

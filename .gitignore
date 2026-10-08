@@ -1,5 +1,5 @@
 # Build output is published as a GitHub Release asset.
-acmd.exe
+easycmd.exe
 
 # Local editor and test artifacts.
 .vs/
