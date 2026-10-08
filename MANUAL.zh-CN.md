@@ -23,12 +23,7 @@ nslookup abc.cn
 ## 2. 安装
 
 1. 从 Releases 下载 `easycmd.exe`。
-2. 以管理员身份打开 CMD 或 PowerShell，并复制程序：
-
-   ```cmd
-   copy easycmd.exe C:\Windows\System32\easycmd.exe
-   ```
-
+2. 复制程序到 C:\Windows\System32目录在：
 3. 在任意 CMD 中执行：
 
    ```cmd
@@ -37,6 +32,9 @@ nslookup abc.cn
 
 4. 关闭当前窗口并重新打开 CMD。
 
+   ```cmd
+   start
+   ```
 `easycmd install` 会为当前用户写入
 `HKCU\Software\Microsoft\Command Processor\AutoRun`，刷新 EasyCMD 的全部宏和启动信息。
 
