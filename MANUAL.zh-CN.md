@@ -23,7 +23,7 @@ nslookup abc.cn
 ## 2. 安装
 
 1. 从 Releases 下载 `easycmd.exe`。
-2. 复制程序到 C:\Windows\System32目录在：
+2. 复制程序到`C:\Windows\System32 目录`：
 3. 在任意 CMD 中执行：
 
    ```cmd
