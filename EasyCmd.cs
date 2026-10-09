@@ -313,10 +313,10 @@ internal static class EasyCmd
     private static string[] TransformArguments(string command, string[] arguments)
     {
         if (string.Equals(command, "curl-cip", StringComparison.OrdinalIgnoreCase))
-            return new[] { "cip.cc" }.Concat(arguments).ToArray();
+            return BuildIpLookupArguments("cip.cc", arguments);
 
         if (string.Equals(command, "curl-ipinfo", StringComparison.OrdinalIgnoreCase))
-            return new[] { "ipinfo.io" }.Concat(arguments).ToArray();
+            return BuildIpLookupArguments("ipinfo.io", arguments);
 
         if (string.Equals(command, "ipconfig-all", StringComparison.OrdinalIgnoreCase))
             return new[] { "/all" }.Concat(arguments).ToArray();
@@ -429,6 +429,19 @@ internal static class EasyCmd
 
         IPAddress address;
         return IPAddress.TryParse(host, out address) && address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
+    }
+
+    private static string[] BuildIpLookupArguments(string serviceHost, string[] arguments)
+    {
+        IPAddress address;
+        if (arguments.Length > 0
+            && IPAddress.TryParse(arguments[0], out address)
+            && address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            return new[] { serviceHost + "/" + arguments[0] }.Concat(arguments.Skip(1)).ToArray();
+        }
+
+        return new[] { serviceHost }.Concat(arguments).ToArray();
     }
 
     private static bool TryGetIpv4Mask(string prefixText, out string mask)

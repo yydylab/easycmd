@@ -59,7 +59,7 @@ UAC 授权完成替换。
 | `a` | `arp` | `a -a` | 原生参数可直接传入。 |
 | `s` | `ssh` | `s user@host` | 原生参数可直接传入。 |
 | `c` | `curl` | `c https://example.com` | `c c` -> `curl cip.cc`<br>`c i` -> `curl ipinfo.io` |
-| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc` / `ci` | 快速查询 IP 信息。 |
+| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc 1.1.1.1` / `ci 1.1.1.1` | 任意 IPv4 地址会作为查询路径：`cc 1.1.1.1` -> `curl cip.cc/1.1.1.1`<br>`ci 1.1.1.1` -> `curl ipinfo.io/1.1.1.1` |
 | `f` | `ftp` | `f ftp.example.com` | 原生参数可直接传入。 |
 | `m` | `mstsc` | `m 192.168.1.1` | 未指定时默认端口 `3389`。 |
 | `pa` | `pathping` | `pa https://example.com/path` | 自动提取网址主机名。 |

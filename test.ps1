@@ -16,6 +16,9 @@ $cases = @(
     @{ Input = @('curl', 'c'); Expected = 'curl cip.cc' },
     @{ Input = @('curl-cip'); Expected = 'curl cip.cc' },
     @{ Input = @('curl-ipinfo'); Expected = 'curl ipinfo.io' },
+    @{ Input = @('curl-cip', '1.1.1.1'); Expected = 'curl cip.cc/1.1.1.1' },
+    @{ Input = @('curl-ipinfo', '8.8.8.8'); Expected = 'curl ipinfo.io/8.8.8.8' },
+    @{ Input = @('curl-cip', '999.1.1.1'); Expected = 'curl cip.cc 999.1.1.1' },
     @{ Input = @('route', 'p'); Expected = 'route print' },
     @{ Input = @('route', 'p', '4'); Expected = 'route print -4' },
     @{ Input = @('route-print'); Expected = 'route print' },
@@ -36,7 +39,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.8.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.9.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }

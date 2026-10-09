@@ -46,7 +46,7 @@ after UAC approval when needed.
 | `a` | `arp` | `a -a` | Pass native options directly. |
 | `s` | `ssh` | `s user@host` | Pass native options directly. |
 | `c` | `curl` | `c https://example.com` | `c c` -> `curl cip.cc`<br>`c i` -> `curl ipinfo.io` |
-| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc` / `ci` | Direct IP information shortcuts. |
+| `cc` / `ci` | `curl cip.cc` / `curl ipinfo.io` | `cc 1.1.1.1` / `ci 1.1.1.1` | Any IPv4 address becomes a lookup path: `cc 1.1.1.1` -> `curl cip.cc/1.1.1.1`<br>`ci 1.1.1.1` -> `curl ipinfo.io/1.1.1.1` |
 | `f` | `ftp` | `f ftp.example.com` | Pass native options directly. |
 | `m` | `mstsc` | `m 192.168.1.1` | Defaults to port `3389`. |
 | `pa` | `pathping` | `pa https://example.com/path` | Extracts the URL host name. |
