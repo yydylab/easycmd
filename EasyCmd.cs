@@ -425,7 +425,8 @@ internal static class EasyCmd
                 continue;
             }
 
-            ExecuteInteractiveLine(line);
+            if (ExecuteInteractiveLine(line))
+                return 0;
         }
     }
 
@@ -810,20 +811,23 @@ internal static class EasyCmd
             "history.txt");
     }
 
-    private static void ExecuteInteractiveLine(string line)
+    private static bool ExecuteInteractiveLine(string line)
     {
         string[] parts = SplitArguments(line);
         if (parts.Length == 0)
-            return;
+            return false;
 
         string command = parts[0];
+        if (IsEasyCmdExecutable(command))
+            return ExecuteEasyCmdSubcommand(parts.Skip(1).ToArray());
+
         if (string.Equals(command, "cd", StringComparison.OrdinalIgnoreCase)
             || string.Equals(command, "chdir", StringComparison.OrdinalIgnoreCase))
         {
             string path = parts.Length > 1 ? parts[1] : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             try { Environment.CurrentDirectory = Path.GetFullPath(path); }
             catch (Exception error) { Console.Error.WriteLine("The system cannot find the path specified: {0}", error.Message); }
-            return;
+            return false;
         }
 
         string normalizedCommand;
@@ -833,15 +837,37 @@ internal static class EasyCmd
         if (IsSupportedCommand(command))
         {
             Run(new[] { command }.Concat(parts.Skip(1)).ToArray());
-            return;
+            return false;
         }
 
         try
         {
             using (Process child = Process.Start(new ProcessStartInfo
             {
+                FileName = command,
+                Arguments = string.Join(" ", parts.Skip(1).Select(QuoteForProcess)),
+                UseShellExecute = true
+            }))
+            {
+                child.WaitForExit();
+            }
+        }
+        catch (Exception error)
+        {
+            RunCmdBuiltin(line, error);
+        }
+        return false;
+    }
+
+    private static void RunCmdBuiltin(string line, Exception directStartError)
+    {
+        try
+        {
+            using (Process child = Process.Start(new ProcessStartInfo
+            {
+                // /d disables CMD AutoRun, preventing a nested EasyCMD interactive shell.
                 FileName = Environment.GetEnvironmentVariable("ComSpec"),
-                Arguments = "/c " + line,
+                Arguments = "/d /c " + line,
                 UseShellExecute = false
             }))
             {
@@ -850,7 +876,65 @@ internal static class EasyCmd
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine("Unable to start {0}: {1}", parts[0], error.Message);
+            Console.Error.WriteLine("Unable to start {0}: {1}", GetFirstWord(line), directStartError.Message);
+            Console.Error.WriteLine("CMD fallback also failed: {0}", error.Message);
+        }
+    }
+
+    private static bool IsEasyCmdExecutable(string command)
+    {
+        string filename = Path.GetFileName(command);
+        return string.Equals(filename, "easycmd", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(filename, "easycmd.exe", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ExecuteEasyCmdSubcommand(string[] arguments)
+    {
+        if (arguments.Length == 0)
+        {
+            ShowEasyCmdCommands(EasyCmdCommands.Keys);
+            return false;
+        }
+
+        string subcommand = arguments[0].ToLowerInvariant();
+        switch (subcommand)
+        {
+            case "-v":
+            case "--version":
+                PrintBanner();
+                return false;
+            case "-h":
+            case "--help":
+                PrintUsage();
+                return false;
+            case "help":
+            case "?":
+                PrintHelp();
+                return false;
+            case "cn":
+                SetLanguage("cn");
+                return false;
+            case "en":
+                SetLanguage("en");
+                return false;
+            case "history":
+                History(arguments.Skip(1).ToArray());
+                return false;
+            case "update":
+                int updateExitCode = Update();
+                return updateScheduled && updateExitCode == 0;
+            case "install":
+                Install();
+                return false;
+            case "uninstall":
+                Uninstall();
+                return true;
+            case "shell":
+                Console.WriteLine("Already in EasyCMD interactive mode.");
+                return false;
+            default:
+                PrintUsage();
+                return false;
         }
     }
 

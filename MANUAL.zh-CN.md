@@ -44,6 +44,10 @@ EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端
 `easycmd install` 后，新开的 CMD 会自动进入 EasyCMD 提示符，提供类似网络设备 CLI
 的补全和帮助。
 
+在交互提示符中可直接执行 `winver`、`sysdm.cpl`、`control`、`taskmgr` 等 Windows
+命令；`easycmd -h`、`easycmd cn`、`easycmd en`、`easycmd update` 等管理命令也会在
+当前提示符内执行，不会再启动嵌套 CMD 或重复显示启动横幅。
+
 | 输入方式 | 结果 |
 | --- | --- |
 | 在空提示符直接按 `Tab` | 显示全部 EasyCMD 命令及中文备注。 |

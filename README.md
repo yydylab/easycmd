@@ -30,6 +30,11 @@ EasyCMD includes its own interactive CMD input layer. It does not require Clink
 or any other third-party terminal extension. After `easycmd install`, every new
 CMD window starts the EasyCMD prompt automatically.
 
+Windows commands such as `winver`, `sysdm.cpl`, `control`, and `taskmgr` run
+directly from the interactive prompt. EasyCMD management commands, including
+`easycmd -h`, `easycmd cn`, `easycmd en`, and `easycmd update`, are handled in
+the same prompt without starting a nested CMD session.
+
 | Input | Result |
 | --- | --- |
 | Press `Tab` at an empty prompt | Lists EasyCMD commands with descriptions. |
