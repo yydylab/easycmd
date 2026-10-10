@@ -8,6 +8,21 @@ extracts the host name before running the native Windows command.
 
 ## Installation
 
+### One-line PowerShell install
+
+Open PowerShell and run the following command. It downloads the latest GitHub
+Release, requests UAC permission, backs up an existing installation, installs
+`easycmd.exe` into `C:\Windows\System32`, and refreshes EasyCMD automatically.
+
+```powershell
+$s="$env:TEMP\easycmd-install.ps1"; iwr https://raw.githubusercontent.com/yydylab/easycmd/main/install.ps1 -OutFile $s; powershell -ExecutionPolicy Bypass -File $s
+```
+
+The same `install.ps1` script is attached to every GitHub Release for users
+who prefer to download and run it directly.
+
+### Manual install
+
 1. Download `easycmd.exe` from Releases.
 2. Copy it to `C:\Windows\System32\easycmd.exe`.
 3. Run:
@@ -66,6 +81,10 @@ easycmd cn
 easycmd en
 easycmd help
 ```
+
+The one-line installer is the recommended method for a first installation. It
+always selects the latest GitHub Release; `easycmd update` handles later
+upgrades.
 
 When used inside the EasyCMD interactive prompt, `easycmd update` schedules the
 update and exits that prompt so Windows can replace `easycmd.exe`. A new CMD

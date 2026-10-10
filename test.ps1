@@ -49,7 +49,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.18.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.19.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -104,6 +104,21 @@ foreach ($expected in @('InteractiveParameters', 'CompleteCommandParameter', 'No
     }
 }
 Write-Host "PASS parameter completion and normalization"
+
+$installScript = Join-Path $PSScriptRoot 'install.ps1'
+$tokens = $null
+$parseErrors = $null
+[System.Management.Automation.Language.Parser]::ParseFile($installScript, [ref]$tokens, [ref]$parseErrors) | Out-Null
+if ($parseErrors.Count -gt 0) {
+    throw "install.ps1 has syntax errors: $($parseErrors.Message -join '; ')"
+}
+$installSource = Get-Content -Raw $installScript
+foreach ($expected in @('releases/latest', 'easycmd.exe', 'Test-IsAdministrator', 'Verb RunAs', 'Get-Process easycmd', 'AssemblyName]::GetAssemblyName', '& $InstallPath install')) {
+    if (-not $installSource.Contains($expected)) {
+        throw "One-line installer source does not contain '$expected'."
+    }
+}
+Write-Host "PASS one-line installer validation"
 
 $source = Get-Content -Raw .\EasyCmd.cs
 foreach ($expected in @('ExecuteEasyCmdSubcommand', 'UseShellExecute = true', 'RunCmdBuiltin', 'Arguments = "/d /c " + line', 'InteractiveGuiCommands', 'IsInteractiveGuiCommand', 'Console.CancelKeyPress')) {

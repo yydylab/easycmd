@@ -22,6 +22,20 @@ nslookup abc.cn
 
 ## 2. 安装
 
+### PowerShell 一键安装
+
+打开 PowerShell，粘贴并执行以下命令。它会自动下载 GitHub 最新 Release、请求 UAC
+授权、备份已安装版本、复制 `easycmd.exe` 到 `C:\Windows\System32`，并刷新 EasyCMD
+配置：
+
+```powershell
+$s="$env:TEMP\easycmd-install.ps1"; iwr https://raw.githubusercontent.com/yydylab/easycmd/main/install.ps1 -OutFile $s; powershell -ExecutionPolicy Bypass -File $s
+```
+
+每个 GitHub Release 也会附带 `install.ps1`，可下载后直接运行。
+
+### 手动安装
+
 1. 从 Releases 下载 `easycmd.exe`。
 2. 复制程序到`C:\Windows\System32 目录`：
 3. 在任意 CMD 中执行：
@@ -88,6 +102,9 @@ easycmd help
 执行 `easycmd install` 后，每次新开 CMD 窗口都会在提示符前显示 EasyCMD 的版本、
 版权和项目地址。`easycmd update` 会检查 GitHub 最新 Release；有新版本时下载并请求
 UAC 授权完成替换。
+
+首次安装推荐使用上述 PowerShell 一键安装命令，它始终选择 GitHub 最新 Release；
+已经安装 EasyCMD 后，可使用 `easycmd update` 升级。
 
 ## 5. 命令简写
 
