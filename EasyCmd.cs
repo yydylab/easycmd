@@ -28,48 +28,63 @@ internal static class EasyCmd
     private static readonly IDictionary<string, CommandHelp> InteractiveCommands =
         new Dictionary<string, CommandHelp>(StringComparer.OrdinalIgnoreCase)
         {
-            { "ping", new CommandHelp("Ping test", "Ping connectivity", "-t Continuous ping|-n COUNT Request count|-w TIMEOUT Timeout in milliseconds") },
-            { "tracert", new CommandHelp("Trace route", "Trace network route", "-d Do not resolve names|-h MAX_HOPS Maximum hops|-w TIMEOUT Timeout in milliseconds") },
-            { "nslookup", new CommandHelp("DNS query", "Query DNS records", "HOST Domain, IP, or URL|SERVER DNS server") },
-            { "pathping", new CommandHelp("Path and packet loss test", "Trace route and packet loss", "-n Do not resolve names|-h MAX_HOPS Maximum hops|-w TIMEOUT Timeout in milliseconds") },
-            { "route", new CommandHelp("View or manage routes", "View or manage IP routes", "print Display route table|add Add route|delete Delete route|change Change route") },
-            { "ipconfig", new CommandHelp("View IP configuration", "Show IP configuration", "/all Full TCP/IP configuration|/flushdns Flush DNS cache|/release Release IPv4 address|/renew Renew IPv4 address") },
-            { "getmac", new CommandHelp("View MAC addresses", "Show MAC addresses", "/v Verbose output") },
-            { "netsh", new CommandHelp("Network configuration console", "Network configuration console", "interface Network interfaces|advfirewall Advanced Firewall|wlan Wireless settings|winhttp WinHTTP proxy") },
-            { "nbtstat", new CommandHelp("NetBIOS diagnostics", "NetBIOS diagnostics", "-n Local NetBIOS names|-a NAME Remote name table") },
-            { "telnet", new CommandHelp("Telnet client", "Telnet client", "HOST Target host|PORT Target port") },
-            { "arp", new CommandHelp("ARP cache management", "Manage ARP cache", "-a Display ARP cache|-d Delete entry|-s Add static entry") },
-            { "tcping", new CommandHelp("TCP port reachability test", "Test TCP port connectivity", "HOST Target host|PORT TCP port; tp defaults to 22|-t Continuous probe") },
-            { "mstsc", new CommandHelp("Remote Desktop connection", "Remote Desktop Connection", "HOST[:PORT] Target RDP host|/admin Admin session|/f Full screen") },
-            { "ncpa.cpl", new CommandHelp("Open network adapters", "Open Network Connections", string.Empty) },
-            { "ftp", new CommandHelp("FTP client", "FTP client", "HOST FTP server") },
-            { "ssh", new CommandHelp("Secure Shell client", "Secure Shell client", "USER@HOST User and host|-p PORT SSH port") },
-            { "curl", new CommandHelp("HTTP transfer tool", "HTTP transfer tool", "URL Full URL|-I Headers only|-L Follow redirects|-o FILE Output file") },
-            { "wget", new CommandHelp("Download tool", "Download tool", "URL Download URL") },
-            { "service.msc", new CommandHelp("Open Services", "Open Services console", string.Empty) },
-            { "tasklist", new CommandHelp("View running processes", "List running processes", "/v Verbose output") },
-            { "tar", new CommandHelp("Archive tool", "Archive utility", "-x Extract|-c Create|-f FILE Archive file") },
-            { "optionalfeatures", new CommandHelp("Windows optional features", "Open Windows Features", string.Empty) },
-            { "firewall.cpl", new CommandHelp("Windows Defender Firewall", "Open Windows Defender Firewall", string.Empty) },
-            { "sysdm.cpl", new CommandHelp("System properties", "Open System Properties", string.Empty) },
-            { "powercfg.cpl", new CommandHelp("Power options", "Open Power Options", string.Empty) },
-            { "msinfo32", new CommandHelp("System information", "Open System Information", string.Empty) },
-            { "inetcpl.cpl", new CommandHelp("Internet options", "Open Internet Options", string.Empty) },
-            { "appwiz.cpl", new CommandHelp("Programs and Features", "Open Programs and Features", string.Empty) },
-            { "msconfig", new CommandHelp("System configuration", "Open System Configuration", string.Empty) },
-            { "notepad", new CommandHelp("Notepad", "Open Notepad", string.Empty) },
-            { "calc", new CommandHelp("Calculator", "Open Calculator", string.Empty) },
-            { "drivers", new CommandHelp("Driver management", "Driver management", string.Empty) },
-            { "control", new CommandHelp("Control Panel", "Open Control Panel", string.Empty) },
-            { "desk.cpl", new CommandHelp("Display settings", "Open Display Settings", string.Empty) },
-            { "winver", new CommandHelp("Windows version", "Show Windows version", string.Empty) },
+            { "ping", new CommandHelp("Ping 连通性测试", "Ping connectivity", "-t 持续 Ping|-n COUNT 指定请求次数|-w TIMEOUT 超时毫秒数") },
+            { "tracert", new CommandHelp("路由跟踪", "Trace network route", "-d 不解析主机名|-h MAX_HOPS 最大跃点数|-w TIMEOUT 超时毫秒数") },
+            { "nslookup", new CommandHelp("DNS 查询", "Query DNS records", "HOST 域名、IP 或 URL|SERVER 指定 DNS 服务器") },
+            { "pathping", new CommandHelp("路径与丢包测试", "Trace route and packet loss", "-n 不解析主机名|-h MAX_HOPS 最大跃点数|-w TIMEOUT 超时毫秒数") },
+            { "route", new CommandHelp("查看或管理路由", "View or manage IP routes", "print 显示路由表|add 添加路由|delete 删除路由|change 修改路由") },
+            { "ipconfig", new CommandHelp("查看 IP 配置", "Show IP configuration", "/all 完整 TCP/IP 配置|/flushdns 清理 DNS 缓存|/release 释放 IPv4 地址|/renew 更新 IPv4 地址") },
+            { "getmac", new CommandHelp("查看 MAC 地址", "Show MAC addresses", "/v 显示详细信息") },
+            { "netsh", new CommandHelp("网络配置控制台", "Network configuration console", "interface 网络接口|advfirewall 高级防火墙|wlan 无线网络|winhttp WinHTTP 代理") },
+            { "nbtstat", new CommandHelp("NetBIOS 诊断", "NetBIOS diagnostics", "-n 本地 NetBIOS 名称|-a NAME 远程名称表") },
+            { "telnet", new CommandHelp("Telnet 客户端", "Telnet client", "HOST 目标主机|PORT 目标端口") },
+            { "arp", new CommandHelp("ARP 缓存管理", "Manage ARP cache", "-a 显示 ARP 缓存|-d 删除条目|-s 添加静态条目") },
+            { "tcping", new CommandHelp("TCP 端口连通性测试", "Test TCP port connectivity", "HOST 目标主机|PORT TCP 端口；tp 默认 22|-t 持续探测") },
+            { "mstsc", new CommandHelp("远程桌面连接", "Remote Desktop Connection", "HOST[:PORT] 目标 RDP 主机|/admin 管理会话|/f 全屏启动") },
+            { "ncpa.cpl", new CommandHelp("打开网络适配器", "Open Network Connections", string.Empty) },
+            { "ftp", new CommandHelp("FTP 客户端", "FTP client", "HOST FTP 服务器") },
+            { "ssh", new CommandHelp("安全 Shell 客户端", "Secure Shell client", "USER@HOST 用户与主机|-p PORT SSH 端口") },
+            { "curl", new CommandHelp("HTTP 传输工具", "HTTP transfer tool", "URL 完整 URL|-I 仅获取响应头|-L 跟随重定向|-o FILE 输出文件") },
+            { "wget", new CommandHelp("下载工具", "Download tool", "URL 下载地址") },
+            { "service.msc", new CommandHelp("打开服务管理", "Open Services console", string.Empty) },
+            { "tasklist", new CommandHelp("查看运行进程", "List running processes", "/v 显示详细信息") },
+            { "tar", new CommandHelp("归档工具", "Archive utility", "-x 解压归档|-c 创建归档|-f FILE 归档文件") },
+            { "optionalfeatures", new CommandHelp("Windows 可选功能", "Open Windows Features", string.Empty) },
+            { "firewall.cpl", new CommandHelp("Windows Defender 防火墙", "Open Windows Defender Firewall", string.Empty) },
+            { "sysdm.cpl", new CommandHelp("系统属性", "Open System Properties", string.Empty) },
+            { "powercfg.cpl", new CommandHelp("电源选项", "Open Power Options", string.Empty) },
+            { "msinfo32", new CommandHelp("系统信息", "Open System Information", string.Empty) },
+            { "inetcpl.cpl", new CommandHelp("Internet 选项", "Open Internet Options", string.Empty) },
+            { "appwiz.cpl", new CommandHelp("程序和功能", "Open Programs and Features", string.Empty) },
+            { "msconfig", new CommandHelp("系统配置", "Open System Configuration", string.Empty) },
+            { "notepad", new CommandHelp("记事本", "Open Notepad", string.Empty) },
+            { "calc", new CommandHelp("计算器", "Open Calculator", string.Empty) },
+            { "drivers", new CommandHelp("驱动程序管理", "Driver management", string.Empty) },
+            { "control", new CommandHelp("控制面板", "Open Control Panel", string.Empty) },
+            { "desk.cpl", new CommandHelp("显示设置", "Open Display Settings", string.Empty) },
+            { "winver", new CommandHelp("Windows 版本", "Show Windows version", string.Empty) },
             { "winword", new CommandHelp("Microsoft Word", "Open Microsoft Word", string.Empty) },
             { "excel", new CommandHelp("Microsoft Excel", "Open Microsoft Excel", string.Empty) },
-            { "timedate.cpl", new CommandHelp("Date and time settings", "Open Date and Time", string.Empty) },
-            { "intl.cpl", new CommandHelp("Region settings", "Open Region settings", string.Empty) },
-            { "regedit", new CommandHelp("Registry Editor", "Open Registry Editor", string.Empty) },
-            { "taskmgr", new CommandHelp("Task Manager", "Open Task Manager", string.Empty) },
-            { "hdwwiz", new CommandHelp("Add Hardware Wizard", "Open Add Hardware Wizard", string.Empty) }
+            { "timedate.cpl", new CommandHelp("日期和时间设置", "Open Date and Time", string.Empty) },
+            { "intl.cpl", new CommandHelp("区域设置", "Open Region settings", string.Empty) },
+            { "regedit", new CommandHelp("注册表编辑器", "Open Registry Editor", string.Empty) },
+            { "taskmgr", new CommandHelp("任务管理器", "Open Task Manager", string.Empty) },
+            { "hdwwiz", new CommandHelp("添加硬件向导", "Open Add Hardware Wizard", string.Empty) }
+        };
+
+    private static readonly IDictionary<string, CommandHelp> EasyCmdCommands =
+        new Dictionary<string, CommandHelp>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "-v", new CommandHelp("显示版本和项目信息", "Show version and project information", string.Empty) },
+            { "-h", new CommandHelp("显示帮助", "Show help", string.Empty) },
+            { "update", new CommandHelp("检查并升级到最新 Release", "Check for and install the latest Release", string.Empty) },
+            { "history", new CommandHelp("查看历史命令", "Show command history", "clear 清空历史命令") },
+            { "cn", new CommandHelp("切换中文备注", "Switch descriptions to Chinese", string.Empty) },
+            { "en", new CommandHelp("切换英文备注", "Switch descriptions to English", string.Empty) },
+            { "help", new CommandHelp("显示帮助", "Show help", string.Empty) },
+            { "install", new CommandHelp("安装或刷新 EasyCMD", "Install or refresh EasyCMD", string.Empty) },
+            { "uninstall", new CommandHelp("卸载 EasyCMD", "Uninstall EasyCMD", string.Empty) },
+            { "shell", new CommandHelp("启动交互模式", "Start interactive mode", string.Empty) }
         };
 
     private static readonly IDictionary<string, string> Aliases =
@@ -114,6 +129,10 @@ internal static class EasyCmd
             case "--version":
             case "banner":
                 PrintBanner();
+                return 0;
+            case "-h":
+            case "--help":
+                PrintUsage();
                 return 0;
             case "update":
                 return Update();
@@ -512,6 +531,12 @@ internal static class EasyCmd
     {
         string line = buffer.ToString();
         string firstWord = GetFirstWord(line);
+        if (string.Equals(firstWord, "easycmd", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(firstWord, "easycmd.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            CompleteEasyCmdLine(buffer, ref cursor);
+            return;
+        }
         if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(firstWord))
         {
             ShowInteractiveHelp(line, cursor);
@@ -523,6 +548,7 @@ internal static class EasyCmd
             return;
 
         string[] matches = InteractiveCommands.Keys
+            .Concat(new[] { "easycmd" })
             .Where(command => command.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .OrderBy(command => command)
             .ToArray();
@@ -536,9 +562,49 @@ internal static class EasyCmd
         ShowCommands(matches);
     }
 
+    private static void CompleteEasyCmdLine(System.Text.StringBuilder buffer, ref int cursor)
+    {
+        string[] parts = SplitArguments(buffer.ToString().Substring(0, cursor));
+        if (parts.Length <= 1)
+        {
+            ShowEasyCmdCommands(EasyCmdCommands.Keys);
+            return;
+        }
+        if (parts.Length == 2)
+        {
+            string[] matches = EasyCmdCommands.Keys
+                .Where(command => command.StartsWith(parts[1], StringComparison.OrdinalIgnoreCase))
+                .OrderBy(command => command)
+                .ToArray();
+            if (matches.Length == 1)
+            {
+                ReplaceInteractiveBuffer(buffer, "easycmd " + matches[0] + " ", ref cursor);
+                return;
+            }
+            ShowEasyCmdCommands(matches);
+            return;
+        }
+        if (string.Equals(parts[1], "history", StringComparison.OrdinalIgnoreCase))
+        {
+            string[] matches = new[] { "clear" }
+                .Where(command => command.StartsWith(parts[2], StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (matches.Length == 1)
+                ReplaceInteractiveBuffer(buffer, "easycmd history clear ", ref cursor);
+            else
+                ShowEasyCmdCommandHelp("history");
+        }
+    }
+
     private static void ShowInteractiveHelp(string line, int cursor)
     {
         string command = GetFirstWord(line);
+        if (string.Equals(command, "easycmd", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(command, "easycmd.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            ShowEasyCmdHelp(line.Substring(0, Math.Min(cursor, line.Length)));
+            return;
+        }
         if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(command))
         {
             CommandHelp help = InteractiveCommands[command];
@@ -552,6 +618,7 @@ internal static class EasyCmd
 
         string prefix = line.Substring(0, Math.Min(cursor, line.Length)).Trim();
         ShowCommands(InteractiveCommands.Keys
+            .Concat(new[] { "easycmd" })
             .Where(commandName => commandName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .OrderBy(commandName => commandName)
             .ToArray());
@@ -571,9 +638,54 @@ internal static class EasyCmd
         Console.WriteLine(chinese ? "  EasyCMD 可用命令：" : "  EasyCMD available commands:");
         foreach (string command in commands)
         {
+            if (string.Equals(command, "easycmd", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("  {0,-18} {1}", command, chinese ? "EasyCMD 管理命令" : "EasyCMD management commands");
+                continue;
+            }
             CommandHelp help = InteractiveCommands[command];
             Console.WriteLine("  {0,-18} {1}", command, chinese ? help.Chinese : help.English);
         }
+    }
+
+    private static void ShowEasyCmdHelp(string line)
+    {
+        string[] parts = SplitArguments(line);
+        if (parts.Length <= 1)
+        {
+            ShowEasyCmdCommands(EasyCmdCommands.Keys);
+            return;
+        }
+        ShowEasyCmdCommandHelp(parts[1]);
+    }
+
+    private static void ShowEasyCmdCommands(IEnumerable<string> names)
+    {
+        string[] commands = names.OrderBy(name => name).ToArray();
+        bool chinese = GetLanguage() == "cn";
+        Console.WriteLine();
+        Console.WriteLine(chinese ? "  EasyCMD 管理命令：" : "  EasyCMD management commands:");
+        foreach (string command in commands)
+        {
+            CommandHelp help = EasyCmdCommands[command];
+            Console.WriteLine("  {0,-18} {1}", command, chinese ? help.Chinese : help.English);
+        }
+    }
+
+    private static void ShowEasyCmdCommandHelp(string command)
+    {
+        CommandHelp help;
+        if (!EasyCmdCommands.TryGetValue(command, out help))
+        {
+            ShowEasyCmdCommands(EasyCmdCommands.Keys
+                .Where(name => name.StartsWith(command, StringComparison.OrdinalIgnoreCase)));
+            return;
+        }
+        bool chinese = GetLanguage() == "cn";
+        Console.WriteLine();
+        Console.WriteLine("  easycmd {0}  {1}", command, chinese ? help.Chinese : help.English);
+        foreach (string item in help.Parameters.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            Console.WriteLine("  {0}", item);
     }
 
     private static string GetFirstWord(string line)
@@ -1120,8 +1232,24 @@ internal static class EasyCmd
 
     private static void PrintUsage()
     {
+        if (GetLanguage() == "cn")
+        {
+            Console.WriteLine("EasyCMD - 简单的 CMD 网络命令快捷工具。");
+            Console.WriteLine("  easycmd.exe -v                 显示版本信息");
+            Console.WriteLine("  easycmd.exe -h | help          显示帮助");
+            Console.WriteLine("  easycmd.exe update             检查并升级到最新版本");
+            Console.WriteLine("  easycmd.exe shell              启动交互模式");
+            Console.WriteLine("  easycmd.exe history [clear]    查看或清空历史命令");
+            Console.WriteLine("  easycmd.exe cn | en            切换中文或英文备注");
+            Console.WriteLine("  easycmd.exe install            安装或刷新 EasyCMD");
+            Console.WriteLine("  easycmd.exe uninstall          卸载 EasyCMD");
+            Console.WriteLine("  easycmd.exe normalize ping https://example.com/path");
+            return;
+        }
+
         Console.WriteLine("EasyCMD - easy CMD network command shortcuts.");
         Console.WriteLine("  easycmd.exe -v");
+        Console.WriteLine("  easycmd.exe -h | help");
         Console.WriteLine("  easycmd.exe update");
         Console.WriteLine("  easycmd.exe shell");
         Console.WriteLine("  easycmd.exe history [clear]");
@@ -1134,6 +1262,19 @@ internal static class EasyCmd
 
     private static void PrintHelp()
     {
+        if (GetLanguage() == "cn")
+        {
+            Console.WriteLine("EasyCMD 交互帮助");
+            Console.WriteLine("  Tab：补全 EasyCMD 命令或列出匹配命令。");
+            Console.WriteLine("  ?：列出全部命令、前缀匹配命令或当前命令参数。");
+            Console.WriteLine("  上/下方向键：浏览历史命令。");
+            Console.WriteLine("  交互模式中执行 easycmd update 会退出 Shell 以便替换程序。");
+            Console.WriteLine("  easycmd cn：切换为中文备注。");
+            Console.WriteLine("  easycmd en：切换为英文备注。");
+            Console.WriteLine("  不依赖任何第三方命令行扩展程序。");
+            return;
+        }
+
         Console.WriteLine("EasyCMD interactive help");
         Console.WriteLine("  Tab: complete an EasyCMD command or list matching commands.");
         Console.WriteLine("  ?: list all commands, commands matching a prefix, or command parameters.");

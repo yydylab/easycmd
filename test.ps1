@@ -2,6 +2,9 @@ $ErrorActionPreference = 'Stop'
 
 & .\build.ps1
 
+$languageKey = 'HKCU:\Software\EasyCMD'
+$originalLanguage = Get-ItemProperty -Path $languageKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Language -ErrorAction SilentlyContinue
+
 $cases = @(
     @{ Input = @('ping', 'https://xxx.com/login'); Expected = 'ping xxx.com' },
     @{ Input = @('tracert', '-d', '-w', '1', 'https://123.com/admin'); Expected = 'tracert -d -w 1 123.com' },
@@ -39,13 +42,14 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.12.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.13.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
 }
 Write-Host "PASS version banner"
 
+& .\easycmd.exe en | Out-Null
 $help = (& .\easycmd.exe help) -join "`n"
 foreach ($expected in @('Tab: complete an EasyCMD command', 'Up/Down: browse previously entered commands', 'easycmd update exits the shell', 'No third-party command-line extension')) {
     if (-not $help.Contains($expected)) {
@@ -56,6 +60,12 @@ foreach ($expected in @('Tab: complete an EasyCMD command', 'Up/Down: browse pre
 $language = [string](Get-ItemProperty -Path 'HKCU:\Software\EasyCMD').Language
 if ($language -ne 'cn') {
     throw 'easycmd cn did not save the Chinese help language.'
+}
+$chineseHelp = (& .\easycmd.exe -h) -join "`n"
+foreach ($expected in @([string][char]0x7B80, [string][char]0x68C0, [string][char]0x5207)) {
+    if (-not $chineseHelp.Contains($expected)) {
+        throw 'Chinese help output is missing expected Chinese text.'
+    }
 }
 & .\easycmd.exe en | Out-Null
 $language = [string](Get-ItemProperty -Path 'HKCU:\Software\EasyCMD').Language
@@ -72,6 +82,14 @@ foreach ($expected in @('IsInteractiveUpdateCommand', 'if (updateScheduled)', 's
 }
 Write-Host "PASS interactive update handoff"
 
+$source = Get-Content -Raw .\EasyCmd.cs
+foreach ($expected in @('EasyCmdCommands', 'CompleteEasyCmdLine', 'ShowEasyCmdHelp', 'ShowEasyCmdCommands')) {
+    if (-not $source.Contains($expected)) {
+        throw "EasyCMD completion source does not contain '$expected'."
+    }
+}
+Write-Host "PASS EasyCMD command completion"
+
 $history = (& .\easycmd.exe history) -join "`n"
 if ([string]::IsNullOrWhiteSpace($history)) {
     throw 'History command did not return a status message.'
@@ -80,8 +98,6 @@ Write-Host "PASS history command"
 
 $key = 'HKCU:\Software\Microsoft\Command Processor'
 $originalAutoRun = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoRun -ErrorAction SilentlyContinue
-$languageKey = 'HKCU:\Software\EasyCMD'
-$originalLanguage = Get-ItemProperty -Path $languageKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Language -ErrorAction SilentlyContinue
 
 try {
     $legacyAutoRun = [string]$originalAutoRun

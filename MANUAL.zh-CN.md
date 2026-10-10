@@ -49,10 +49,12 @@ EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端
 | 在空提示符直接按 `Tab` | 显示全部 EasyCMD 命令及中文备注。 |
 | 输入前缀如 `p` 后按 `Tab` 或 `?` | 唯一匹配时自动补全；存在多个匹配时显示 `ping`、`pathping`、`powercfg.cpl` 等候选项。 |
 | 输入 `ping ` 后按 `Tab` 或 `?` | 显示 `ping` 支持的参数及说明。 |
+| 输入 `easycmd ` 后按 `Tab` 或 `?` | 显示 `update`、`history`、`cn`、`en`、`install`、`uninstall` 等 EasyCMD 管理命令。 |
+| 输入 `easycmd history ` 后按 `Tab` 或 `?` | 显示 `clear` 参数及说明。 |
 | 按上、下方向键 | 翻看本次及此前 CMD 窗口中使用过的 EasyCMD 命令。 |
 | `easycmd cn` | 切换为中文补全与帮助说明。 |
 | `easycmd en` | 切换为英文补全与帮助说明。 |
-| `easycmd help` | 在普通输出中查看交互帮助速查。 |
+| `easycmd -h` / `easycmd help` | 按 `easycmd cn` 或 `easycmd en` 当前设置显示帮助。 |
 | `easycmd history` / `easycmd history clear` | 查看或清空持久化历史命令。 |
 
 执行 `easycmd cn` 或 `easycmd en` 后，说明语言立即生效。
