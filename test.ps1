@@ -39,7 +39,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.11.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.12.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -47,7 +47,7 @@ foreach ($expected in @('easycmd v0.1.11.0', 'Copyright (c) 2026 yydylab', 'http
 Write-Host "PASS version banner"
 
 $help = (& .\easycmd.exe help) -join "`n"
-foreach ($expected in @('Tab: complete an EasyCMD command', 'easycmd cn: use Chinese', 'No third-party command-line extension')) {
+foreach ($expected in @('Tab: complete an EasyCMD command', 'Up/Down: browse previously entered commands', 'easycmd update exits the shell', 'No third-party command-line extension')) {
     if (-not $help.Contains($expected)) {
         throw "Help output does not contain '$expected'."
     }
@@ -63,6 +63,20 @@ if ($language -ne 'en') {
     throw 'easycmd en did not save the English help language.'
 }
 Write-Host "PASS interactive help settings"
+
+$source = Get-Content -Raw .\EasyCmd.cs
+foreach ($expected in @('IsInteractiveUpdateCommand', 'if (updateScheduled)', 'set attempts=0', 'if %attempts% GEQ 15')) {
+    if (-not $source.Contains($expected)) {
+        throw "Interactive update source does not contain '$expected'."
+    }
+}
+Write-Host "PASS interactive update handoff"
+
+$history = (& .\easycmd.exe history) -join "`n"
+if ([string]::IsNullOrWhiteSpace($history)) {
+    throw 'History command did not return a status message.'
+}
+Write-Host "PASS history command"
 
 $key = 'HKCU:\Software\Microsoft\Command Processor'
 $originalAutoRun = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoRun -ErrorAction SilentlyContinue

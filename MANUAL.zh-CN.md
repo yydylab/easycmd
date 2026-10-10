@@ -49,11 +49,14 @@ EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端
 | 在空提示符直接按 `Tab` | 显示全部 EasyCMD 命令及中文备注。 |
 | 输入前缀如 `p` 后按 `Tab` 或 `?` | 唯一匹配时自动补全；存在多个匹配时显示 `ping`、`pathping`、`powercfg.cpl` 等候选项。 |
 | 输入 `ping ` 后按 `Tab` 或 `?` | 显示 `ping` 支持的参数及说明。 |
+| 按上、下方向键 | 翻看本次及此前 CMD 窗口中使用过的 EasyCMD 命令。 |
 | `easycmd cn` | 切换为中文补全与帮助说明。 |
 | `easycmd en` | 切换为英文补全与帮助说明。 |
 | `easycmd help` | 在普通输出中查看交互帮助速查。 |
+| `easycmd history` / `easycmd history clear` | 查看或清空持久化历史命令。 |
 
 执行 `easycmd cn` 或 `easycmd en` 后，说明语言立即生效。
+历史命令保存在当前用户的 `%LOCALAPPDATA%\EasyCMD\history.txt`，默认保留最近 500 条。
 补全目录包含常用网络命令及 Windows 工具，例如 `ncpa.cpl`、`service.msc`、`taskmgr`、
 `control`、`regedit`、`winver`、`notepad`、`calc` 等。
 
@@ -66,6 +69,9 @@ easycmd cn
 easycmd en
 easycmd help
 ```
+
+在 EasyCMD 交互提示符中执行 `easycmd update` 后，程序会安排升级并自动退出当前
+交互提示符，以便 Windows 替换正在运行的 `easycmd.exe`。升级成功后会自动打开新的 CMD 窗口。
 
 执行 `easycmd install` 后，每次新开 CMD 窗口都会在提示符前显示 EasyCMD 的版本、
 版权和项目地址。`easycmd update` 会检查 GitHub 最新 Release；有新版本时下载并请求

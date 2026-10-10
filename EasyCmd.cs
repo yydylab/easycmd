@@ -22,6 +22,8 @@ internal static class EasyCmd
     private const string LatestReleaseApi = "https://api.github.com/repos/yydylab/easycmd/releases/latest";
     private const string EasyCmdKey = @"Software\EasyCMD";
     private const string LanguageValue = "Language";
+    private const int MaximumHistoryEntries = 500;
+    private static bool updateScheduled;
 
     private static readonly IDictionary<string, CommandHelp> InteractiveCommands =
         new Dictionary<string, CommandHelp>(StringComparer.OrdinalIgnoreCase)
@@ -117,6 +119,8 @@ internal static class EasyCmd
                 return Update();
             case "shell":
                 return Shell();
+            case "history":
+                return History(args.Skip(1).ToArray());
             case "cn":
                 return SetLanguage("cn");
             case "en":
@@ -160,6 +164,7 @@ internal static class EasyCmd
 
     private static int Update()
     {
+        updateScheduled = false;
         try
         {
             Console.WriteLine("Checking for updates...");
@@ -191,6 +196,7 @@ internal static class EasyCmd
             }
 
             StartUpdater(downloadedFile, Process.GetCurrentProcess().MainModule.FileName);
+            updateScheduled = true;
             Console.WriteLine("Update scheduled. Approve the UAC prompt to complete the upgrade.");
             return 0;
         }
@@ -258,10 +264,21 @@ internal static class EasyCmd
         File.WriteAllLines(script, new[]
         {
             "@echo off",
-            "ping 127.0.0.1 -n 3 > nul",
+            "set attempts=0",
+            ":replace",
             "move /y " + QuoteForCmd(downloadedFile) + " " + QuoteForCmd(targetFile) + " > nul",
+            "if not errorlevel 1 goto updated",
+            "set /a attempts+=1",
+            "if %attempts% GEQ 15 goto failed",
+            "timeout /t 1 /nobreak > nul",
+            "goto replace",
+            ":updated",
             QuoteForCmd(targetFile) + " install > nul",
             "start \"\" \"%ComSpec%\" /k",
+            "goto cleanup",
+            ":failed",
+            "echo EasyCMD update failed because the current executable is still in use.",
+            ":cleanup",
             "del \"%~f0\""
         });
 
@@ -326,10 +343,11 @@ internal static class EasyCmd
 
     private static int Shell()
     {
-        Console.WriteLine("EasyCMD interactive mode. Press Tab or ? for help; type exit to return to CMD.");
+        List<string> history = LoadHistory();
+        Console.WriteLine("EasyCMD interactive mode. Press Tab or ? for help; use Up/Down for history; type exit to return to CMD.");
         while (true)
         {
-            string line = ReadInteractiveLine();
+            string line = ReadInteractiveLine(history);
             if (line == null)
                 return 0;
 
@@ -338,6 +356,22 @@ internal static class EasyCmd
                 continue;
             if (string.Equals(trimmed, "exit", StringComparison.OrdinalIgnoreCase))
                 return 0;
+            if (IsInteractiveUpdateCommand(trimmed))
+            {
+                AddHistory(history, line);
+                int updateExitCode = Update();
+                // The updater replaces this executable, so release its file handle immediately.
+                if (updateScheduled)
+                    return updateExitCode;
+                continue;
+            }
+            if (string.Equals(trimmed, "history", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("history ", StringComparison.OrdinalIgnoreCase))
+            {
+                History(SplitArguments(trimmed).Skip(1).ToArray());
+                continue;
+            }
+            AddHistory(history, line);
             if (string.Equals(trimmed, "cls", StringComparison.OrdinalIgnoreCase))
             {
                 Console.Clear();
@@ -353,10 +387,12 @@ internal static class EasyCmd
         }
     }
 
-    private static string ReadInteractiveLine()
+    private static string ReadInteractiveLine(IList<string> history)
     {
         var buffer = new System.Text.StringBuilder();
         int cursor = 0;
+        int historyIndex = history.Count;
+        string draft = string.Empty;
         while (true)
         {
             string prompt = Environment.CurrentDirectory + ">";
@@ -406,6 +442,31 @@ internal static class EasyCmd
                 cursor = buffer.Length;
                 continue;
             }
+            if (key.Key == ConsoleKey.UpArrow)
+            {
+                if (historyIndex == history.Count)
+                    draft = buffer.ToString();
+                if (historyIndex > 0)
+                {
+                    historyIndex--;
+                    ReplaceInteractiveBuffer(buffer, history[historyIndex], ref cursor);
+                }
+                continue;
+            }
+            if (key.Key == ConsoleKey.DownArrow)
+            {
+                if (historyIndex < history.Count - 1)
+                {
+                    historyIndex++;
+                    ReplaceInteractiveBuffer(buffer, history[historyIndex], ref cursor);
+                }
+                else if (historyIndex < history.Count)
+                {
+                    historyIndex = history.Count;
+                    ReplaceInteractiveBuffer(buffer, draft, ref cursor);
+                }
+                continue;
+            }
             if (key.Key == ConsoleKey.Tab)
             {
                 CompleteInteractiveLine(buffer, ref cursor);
@@ -421,6 +482,24 @@ internal static class EasyCmd
                 buffer.Insert(cursor++, key.KeyChar);
             }
         }
+    }
+
+    private static void ReplaceInteractiveBuffer(System.Text.StringBuilder buffer, string value, ref int cursor)
+    {
+        buffer.Clear();
+        buffer.Append(value);
+        cursor = buffer.Length;
+    }
+
+    private static bool IsInteractiveUpdateCommand(string line)
+    {
+        string[] parts = SplitArguments(line);
+        if (parts.Length != 2 || !string.Equals(parts[1], "update", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        string executable = Path.GetFileName(parts[0]);
+        return string.Equals(executable, "easycmd", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(executable, "easycmd.exe", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void RedrawInteractiveLine(string prompt, string line, int cursor)
@@ -510,6 +589,90 @@ internal static class EasyCmd
         {
             return (key.GetValue(LanguageValue, "en") as string ?? "en").ToLowerInvariant();
         }
+    }
+
+    private static int History(string[] arguments)
+    {
+        if (arguments.Length == 1 && string.Equals(arguments[0], "clear", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                if (File.Exists(GetHistoryPath()))
+                    File.Delete(GetHistoryPath());
+                Console.WriteLine("EasyCMD command history cleared.");
+                return 0;
+            }
+            catch (Exception error)
+            {
+                Console.Error.WriteLine("Unable to clear command history: {0}", error.Message);
+                return 1;
+            }
+        }
+
+        List<string> history = LoadHistory();
+        if (history.Count == 0)
+        {
+            Console.WriteLine("EasyCMD command history is empty.");
+            return 0;
+        }
+
+        for (int index = 0; index < history.Count; index++)
+            Console.WriteLine("{0,4}  {1}", index + 1, history[index]);
+        return 0;
+    }
+
+    private static List<string> LoadHistory()
+    {
+        try
+        {
+            string path = GetHistoryPath();
+            if (!File.Exists(path))
+                return new List<string>();
+
+            string[] entries = File.ReadAllLines(path)
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .ToArray();
+            return entries.Skip(Math.Max(0, entries.Length - MaximumHistoryEntries)).ToList();
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine("Unable to load command history: {0}", error.Message);
+            return new List<string>();
+        }
+    }
+
+    private static void AddHistory(IList<string> history, string line)
+    {
+        string entry = line.Trim();
+        if (entry.Length == 0)
+            return;
+
+        try
+        {
+            string path = GetHistoryPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.AppendAllText(path, entry + Environment.NewLine);
+            history.Add(entry);
+
+            if (history.Count > MaximumHistoryEntries)
+            {
+                while (history.Count > MaximumHistoryEntries)
+                    history.RemoveAt(0);
+                File.WriteAllLines(path, history);
+            }
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine("Unable to save command history: {0}", error.Message);
+        }
+    }
+
+    private static string GetHistoryPath()
+    {
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "EasyCMD",
+            "history.txt");
     }
 
     private static void ExecuteInteractiveLine(string line)
@@ -961,6 +1124,7 @@ internal static class EasyCmd
         Console.WriteLine("  easycmd.exe -v");
         Console.WriteLine("  easycmd.exe update");
         Console.WriteLine("  easycmd.exe shell");
+        Console.WriteLine("  easycmd.exe history [clear]");
         Console.WriteLine("  easycmd.exe cn | en");
         Console.WriteLine("  easycmd.exe help");
         Console.WriteLine("  easycmd.exe install");
@@ -973,6 +1137,8 @@ internal static class EasyCmd
         Console.WriteLine("EasyCMD interactive help");
         Console.WriteLine("  Tab: complete an EasyCMD command or list matching commands.");
         Console.WriteLine("  ?: list all commands, commands matching a prefix, or command parameters.");
+        Console.WriteLine("  Up/Down: browse previously entered commands.");
+        Console.WriteLine("  In interactive mode, easycmd update exits the shell so the executable can be replaced.");
         Console.WriteLine("  easycmd cn: use Chinese completion descriptions.");
         Console.WriteLine("  easycmd en: use English completion descriptions.");
         Console.WriteLine("  No third-party command-line extension is required.");

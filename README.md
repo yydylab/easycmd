@@ -35,10 +35,13 @@ CMD window starts the EasyCMD prompt automatically.
 | Press `Tab` at an empty prompt | Lists EasyCMD commands with descriptions. |
 | Type a prefix such as `p`, then press `Tab` or `?` | Completes a unique command, or lists matching commands such as `ping`, `pathping`, and `powercfg.cpl`. |
 | Type `ping `, then press `Tab` or `?` | Lists supported `ping` arguments with descriptions. |
+| Press the Up or Down arrow | Browse commands used in EasyCMD, including commands from earlier CMD windows. |
 | `easycmd cn` | Switches completion descriptions to Chinese. |
 | `easycmd en` | Switches completion descriptions to English. |
 | `easycmd help` | Prints the interactive-help quick reference. |
+| `easycmd history` / `easycmd history clear` | Show or clear the persistent command history. |
 
+History is stored for the current user in `%LOCALAPPDATA%\EasyCMD\history.txt` and retains the latest 500 commands.
 The language changes immediately. The completion catalog also includes commonly used Windows tools such as `ncpa.cpl`,
 `service.msc`, `taskmgr`, `control`, `regedit`, `winver`, `notepad`, and `calc`.
 
@@ -51,6 +54,10 @@ easycmd cn
 easycmd en
 easycmd help
 ```
+
+When used inside the EasyCMD interactive prompt, `easycmd update` schedules the
+update and exits that prompt so Windows can replace `easycmd.exe`. A new CMD
+window opens automatically after a successful update.
 
 After `easycmd install`, every newly opened CMD window displays the EasyCMD
 version, copyright, and project URL before the prompt. `easycmd update`
