@@ -53,6 +53,8 @@ EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端
 | 在空提示符直接按 `Tab` | 显示全部 EasyCMD 命令及中文备注。 |
 | 输入前缀如 `p` 后按 `Tab` 或 `?` | 唯一匹配时自动补全；存在多个匹配时显示 `ping`、`pathping`、`powercfg.cpl` 等候选项。 |
 | 输入 `ping ` 后按 `Tab` 或 `?` | 显示 `ping` 支持的参数及说明。 |
+| 输入 `ipconfig f` 后按 `Tab` | 自动补全为 `ipconfig /flushdns`；参数可不输入 `-` 或 `/`。 |
+| 输入 `route p` 或 `route d` 后按 `Tab` | 自动补全为 `route print` 或 `route delete`。 |
 | 输入 `easycmd ` 后按 `Tab` 或 `?` | 显示 `update`、`history`、`cn`、`en`、`install`、`uninstall` 等 EasyCMD 管理命令。 |
 | 输入 `easycmd history ` 后按 `Tab` 或 `?` | 显示 `clear` 参数及说明。 |
 | 按上、下方向键 | 翻看本次及此前 CMD 窗口中使用过的 EasyCMD 命令。 |
@@ -65,6 +67,9 @@ EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端
 历史命令保存在当前用户的 `%LOCALAPPDATA%\EasyCMD\history.txt`，默认保留最近 500 条。
 补全目录包含常用网络命令及 Windows 工具，例如 `ncpa.cpl`、`service.msc`、`taskmgr`、
 `control`、`regedit`、`winver`、`notepad`、`calc` 等。
+网络命令参数既可使用原生写法，也可省略开头的 `-` 或 `/`：例如 `ping w 100 host`、
+`tracert d host`、`ipconfig flushdns`、`route delete`、`curl head URL`、`mstsc host admin`
+都会在执行前转换为对应的原生参数。
 
 ## 4. 版本、启动信息与更新
 

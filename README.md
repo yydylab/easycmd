@@ -40,6 +40,8 @@ the same prompt without starting a nested CMD session.
 | Press `Tab` at an empty prompt | Lists EasyCMD commands with descriptions. |
 | Type a prefix such as `p`, then press `Tab` or `?` | Completes a unique command, or lists matching commands such as `ping`, `pathping`, and `powercfg.cpl`. |
 | Type `ping `, then press `Tab` or `?` | Lists supported `ping` arguments with descriptions. |
+| Type `ipconfig f`, then press `Tab` | Completes to `ipconfig /flushdns`; parameter aliases do not need `-` or `/`. |
+| Type `route p` or `route d`, then press `Tab` | Completes to `route print` or `route delete`. |
 | Type `easycmd `, then press `Tab` or `?` | Lists EasyCMD management commands such as `update`, `history`, `cn`, `en`, `install`, and `uninstall`. |
 | Type `easycmd history `, then press `Tab` or `?` | Shows the `clear` parameter and its description. |
 | Press the Up or Down arrow | Browse commands used in EasyCMD, including commands from earlier CMD windows. |
@@ -51,6 +53,9 @@ the same prompt without starting a nested CMD session.
 History is stored for the current user in `%LOCALAPPDATA%\EasyCMD\history.txt` and retains the latest 500 commands.
 The language changes immediately. The completion catalog also includes commonly used Windows tools such as `ncpa.cpl`,
 `service.msc`, `taskmgr`, `control`, `regedit`, `winver`, `notepad`, and `calc`.
+Network-command parameters can be entered either in their native form or without the
+leading `-` or `/`: for example, `ping w 100 host`, `tracert d host`, `ipconfig flushdns`,
+`route delete`, `curl head URL`, and `mstsc host admin` are normalized before execution.
 
 ## Version And Updates
 

@@ -15,6 +15,8 @@ $cases = @(
     @{ Input = @('ipconfig', 'a'); Expected = 'ipconfig /all' },
     @{ Input = @('ipconfig-all'); Expected = 'ipconfig /all' },
     @{ Input = @('ipconfig', 'f'); Expected = 'ipconfig /flushdns' },
+    @{ Input = @('ipconfig', 'flushdns'); Expected = 'ipconfig /flushdns' },
+    @{ Input = @('ipconfig', 'release'); Expected = 'ipconfig /release' },
     @{ Input = @('ipconfig-flushdns'); Expected = 'ipconfig /flushdns' },
     @{ Input = @('curl', 'c'); Expected = 'curl cip.cc' },
     @{ Input = @('curl-cip'); Expected = 'curl cip.cc' },
@@ -23,12 +25,17 @@ $cases = @(
     @{ Input = @('curl-ipinfo', '8.8.8.8'); Expected = 'curl ipinfo.io/8.8.8.8' },
     @{ Input = @('curl-cip', '999.1.1.1'); Expected = 'curl cip.cc 999.1.1.1' },
     @{ Input = @('route', 'p'); Expected = 'route print' },
+    @{ Input = @('route', 'd'); Expected = 'route delete' },
     @{ Input = @('route', 'p', '4'); Expected = 'route print -4' },
     @{ Input = @('route-print'); Expected = 'route print' },
     @{ Input = @('route-print-4'); Expected = 'route print -4' },
     @{ Input = @('route-print-6'); Expected = 'route print -6' },
     @{ Input = @('route', 'a', '223.5.5.5', '32', '192.168.1.1'); Expected = 'route add 223.5.5.5 mask 255.255.255.255 192.168.1.1' },
     @{ Input = @('mstsc', '192.168.1.1'); Expected = 'mstsc /v:192.168.1.1:3389' },
+    @{ Input = @('mstsc', '192.168.1.1', 'admin'); Expected = 'mstsc /v:192.168.1.1:3389 /admin' },
+    @{ Input = @('ping', 'w', '100', 'example.com'); Expected = 'ping -w 100 example.com' },
+    @{ Input = @('tracert', 'd', 'example.com'); Expected = 'tracert -d example.com' },
+    @{ Input = @('curl', 'head', 'https://example.com'); Expected = 'curl -I https://example.com' },
     @{ Input = @('tcping', '192.168.1.200', '3389'); Expected = 'tcping 192.168.1.200 3389' },
     @{ Input = @('tcping', '192.168.1.200'); Expected = 'tcping 192.168.1.200 22' }
 )
@@ -42,7 +49,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.17.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.18.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -89,6 +96,14 @@ foreach ($expected in @('EasyCmdCommands', 'CompleteEasyCmdLine', 'ShowEasyCmdHe
     }
 }
 Write-Host "PASS EasyCMD command completion"
+
+$source = Get-Content -Raw .\EasyCmd.cs
+foreach ($expected in @('InteractiveParameters', 'CompleteCommandParameter', 'NormalizeInteractiveParameters', 'ReplaceCurrentToken', 'Option("/flushdns"')) {
+    if (-not $source.Contains($expected)) {
+        throw "Parameter completion source does not contain '$expected'."
+    }
+}
+Write-Host "PASS parameter completion and normalization"
 
 $source = Get-Content -Raw .\EasyCmd.cs
 foreach ($expected in @('ExecuteEasyCmdSubcommand', 'UseShellExecute = true', 'RunCmdBuiltin', 'Arguments = "/d /c " + line', 'InteractiveGuiCommands', 'IsInteractiveGuiCommand', 'Console.CancelKeyPress')) {

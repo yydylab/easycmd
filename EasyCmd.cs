@@ -94,6 +94,149 @@ internal static class EasyCmd
             { "shell", new CommandHelp("启动交互模式", "Start interactive mode", string.Empty) }
         };
 
+    private static readonly IDictionary<string, ParameterOption[]> InteractiveParameters =
+        new Dictionary<string, ParameterOption[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ping", new[]
+                {
+                    Option("-t", "持续 Ping", "Ping continuously", "t", "continuous"),
+                    Option("-a", "解析地址为主机名", "Resolve addresses to host names", "a"),
+                    Option("-n", "指定请求次数", "Set echo request count", "n", "count"),
+                    Option("-l", "指定发送缓冲区大小", "Set send buffer size", "l", "size"),
+                    Option("-f", "设置不分段标志", "Set don't fragment flag", "f"),
+                    Option("-w", "指定超时毫秒数", "Set timeout in milliseconds", "w", "timeout"),
+                    Option("-4", "强制 IPv4", "Force IPv4", "4"),
+                    Option("-6", "强制 IPv6", "Force IPv6", "6")
+                }
+            },
+            { "tracert", new[]
+                {
+                    Option("-d", "不解析主机名", "Do not resolve host names", "d"),
+                    Option("-h", "指定最大跃点数", "Set maximum hops", "h", "hops"),
+                    Option("-j", "指定松散源路由", "Specify loose source route", "j"),
+                    Option("-w", "指定超时毫秒数", "Set timeout in milliseconds", "w", "timeout"),
+                    Option("-4", "强制 IPv4", "Force IPv4", "4"),
+                    Option("-6", "强制 IPv6", "Force IPv6", "6")
+                }
+            },
+            { "pathping", new[]
+                {
+                    Option("-n", "不解析主机名", "Do not resolve host names", "n"),
+                    Option("-h", "指定最大跃点数", "Set maximum hops", "h", "hops"),
+                    Option("-g", "指定源路由", "Specify source route", "g"),
+                    Option("-p", "指定每跳等待毫秒数", "Set wait time per hop", "p"),
+                    Option("-q", "指定每跳查询次数", "Set queries per hop", "q"),
+                    Option("-w", "指定超时毫秒数", "Set timeout in milliseconds", "w", "timeout"),
+                    Option("-4", "强制 IPv4", "Force IPv4", "4"),
+                    Option("-6", "强制 IPv6", "Force IPv6", "6")
+                }
+            },
+            { "ipconfig", new[]
+                {
+                    Option("/all", "显示完整 TCP/IP 配置", "Show full TCP/IP configuration", "a", "all"),
+                    Option("/release", "释放 IPv4 地址", "Release IPv4 address", "release"),
+                    Option("/renew", "更新 IPv4 地址", "Renew IPv4 address", "renew"),
+                    Option("/flushdns", "清理 DNS 缓存", "Flush DNS resolver cache", "f", "flushdns"),
+                    Option("/displaydns", "显示 DNS 缓存", "Display DNS resolver cache", "displaydns"),
+                    Option("/registerdns", "刷新 DNS 注册", "Refresh DNS registration", "registerdns")
+                }
+            },
+            { "route", new[]
+                {
+                    Option("print", "显示路由表", "Display routing table", "p", "print"),
+                    Option("add", "添加路由", "Add a route", "a", "add"),
+                    Option("delete", "删除路由", "Delete a route", "d", "delete"),
+                    Option("change", "修改路由", "Change a route", "c", "change"),
+                    Option("-4", "查看 IPv4 路由", "Use IPv4 route table", "4"),
+                    Option("-6", "查看 IPv6 路由", "Use IPv6 route table", "6")
+                }
+            },
+            { "arp", new[]
+                {
+                    Option("-a", "显示 ARP 缓存", "Display ARP cache", "a"),
+                    Option("-d", "删除 ARP 条目", "Delete ARP entry", "d", "delete"),
+                    Option("-s", "添加静态 ARP 条目", "Add static ARP entry", "s", "static")
+                }
+            },
+            { "netsh", new[]
+                {
+                    Option("interface", "网络接口配置", "Network interface configuration", "i", "interface"),
+                    Option("advfirewall", "高级防火墙配置", "Advanced Firewall configuration", "a", "advfirewall"),
+                    Option("firewall", "旧版防火墙配置", "Legacy Firewall configuration", "f", "firewall"),
+                    Option("wlan", "无线网络配置", "Wireless network configuration", "w", "wlan"),
+                    Option("winhttp", "WinHTTP 代理配置", "WinHTTP proxy configuration", "winhttp")
+                }
+            },
+            { "nbtstat", new[]
+                {
+                    Option("-n", "显示本地 NetBIOS 名称", "Show local NetBIOS names", "n"),
+                    Option("-a", "显示远程名称表", "Show remote name table", "a"),
+                    Option("-c", "显示缓存", "Show cache", "c"),
+                    Option("-r", "显示已解析名称", "Show resolved names", "r")
+                }
+            },
+            { "tcping", new[]
+                {
+                    Option("-t", "持续探测", "Probe continuously", "t"),
+                    Option("-n", "指定探测次数", "Set probe count", "n", "count"),
+                    Option("-i", "指定探测间隔", "Set probe interval", "i", "interval"),
+                    Option("-w", "指定超时毫秒数", "Set timeout in milliseconds", "w", "timeout")
+                }
+            },
+            { "mstsc", new[]
+                {
+                    Option("/admin", "连接管理会话", "Connect to admin session", "admin"),
+                    Option("/f", "全屏启动", "Start full screen", "f", "fullscreen"),
+                    Option("/multimon", "使用多个显示器", "Use multiple monitors", "multimon"),
+                    Option("/public", "公用模式", "Use public mode", "public")
+                }
+            },
+            { "ssh", new[]
+                {
+                    Option("-p", "指定 SSH 端口", "Specify SSH port", "p", "port"),
+                    Option("-l", "指定登录用户", "Specify login user", "l", "login"),
+                    Option("-i", "指定密钥文件", "Specify identity file", "i", "identity"),
+                    Option("-v", "详细输出", "Verbose output", "v", "verbose")
+                }
+            },
+            { "curl", new[]
+                {
+                    Option("-I", "仅获取响应头", "Fetch headers only", "head"),
+                    Option("-L", "跟随重定向", "Follow redirects", "location"),
+                    Option("-o", "指定输出文件", "Write output to file", "output"),
+                    Option("-O", "使用远程文件名", "Use remote file name", "remote-name"),
+                    Option("-v", "详细输出", "Verbose output", "verbose"),
+                    Option("-k", "忽略证书验证", "Allow insecure TLS", "insecure"),
+                    Option("-u", "指定认证信息", "Specify authentication", "user"),
+                    Option("-H", "添加请求头", "Add request header", "header"),
+                    Option("-X", "指定 HTTP 方法", "Specify HTTP method", "request")
+                }
+            },
+            { "tasklist", new[]
+                {
+                    Option("/v", "显示详细信息", "Show verbose output", "v", "verbose"),
+                    Option("/svc", "显示服务信息", "Show service information", "svc"),
+                    Option("/fo", "指定输出格式", "Set output format", "fo", "format"),
+                    Option("/fi", "指定筛选条件", "Set filter", "fi", "filter")
+                }
+            },
+            { "tar", new[]
+                {
+                    Option("-x", "解压归档", "Extract archive", "x", "extract"),
+                    Option("-c", "创建归档", "Create archive", "c", "create"),
+                    Option("-t", "列出归档内容", "List archive contents", "t", "list"),
+                    Option("-f", "指定归档文件", "Specify archive file", "f", "file")
+                }
+            },
+            { "getmac", new[]
+                {
+                    Option("/v", "显示详细信息", "Show verbose output", "v", "verbose"),
+                    Option("/fo", "指定输出格式", "Set output format", "fo", "format"),
+                    Option("/nh", "隐藏表头", "Hide column headers", "nh", "noheader")
+                }
+            }
+        };
+
     private static readonly IDictionary<string, string> Aliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -587,17 +730,19 @@ internal static class EasyCmd
         }
         if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(firstWord))
         {
+            if (CompleteCommandParameter(buffer, ref cursor, firstWord))
+                return;
             ShowInteractiveHelp(line, cursor);
             return;
         }
 
-        string prefix = line.Substring(0, cursor).Trim();
-        if (prefix.IndexOf(' ') >= 0)
+        string commandPrefix = line.Substring(0, cursor).Trim();
+        if (commandPrefix.IndexOf(' ') >= 0)
             return;
 
         string[] matches = InteractiveCommands.Keys
             .Concat(new[] { "easycmd" })
-            .Where(command => command.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Where(command => command.StartsWith(commandPrefix, StringComparison.OrdinalIgnoreCase))
             .OrderBy(command => command)
             .ToArray();
         if (matches.Length == 1)
@@ -608,6 +753,49 @@ internal static class EasyCmd
             return;
         }
         ShowCommands(matches);
+    }
+
+    private static bool CompleteCommandParameter(System.Text.StringBuilder buffer, ref int cursor, string command)
+    {
+        ParameterOption[] options;
+        if (!InteractiveParameters.TryGetValue(command, out options))
+            return false;
+
+        int tokenStart = cursor;
+        while (tokenStart > 0 && !char.IsWhiteSpace(buffer[tokenStart - 1]))
+            tokenStart--;
+        string prefix = buffer.ToString(tokenStart, cursor - tokenStart);
+        ParameterOption[] matches = options
+            .Where(option => option.Matches(prefix))
+            .OrderBy(option => option.Canonical)
+            .ToArray();
+        if (matches.Length == 1)
+        {
+            ReplaceCurrentToken(buffer, ref cursor, matches[0].Canonical);
+            return true;
+        }
+
+        ShowCommandParameters(command, matches);
+        return true;
+    }
+
+    private static void ReplaceCurrentToken(System.Text.StringBuilder buffer, ref int cursor, string value)
+    {
+        int start = cursor;
+        while (start > 0 && !char.IsWhiteSpace(buffer[start - 1]))
+            start--;
+        int end = cursor;
+        while (end < buffer.Length && !char.IsWhiteSpace(buffer[end]))
+            end++;
+
+        buffer.Remove(start, end - start);
+        buffer.Insert(start, value);
+        cursor = start + value.Length;
+        if (cursor == buffer.Length)
+        {
+            buffer.Insert(cursor, ' ');
+            cursor++;
+        }
     }
 
     private static void CompleteEasyCmdLine(System.Text.StringBuilder buffer, ref int cursor)
@@ -655,6 +843,13 @@ internal static class EasyCmd
         }
         if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(command))
         {
+            ParameterOption[] options;
+            if (InteractiveParameters.TryGetValue(command, out options))
+            {
+                string prefix = GetCurrentParameterPrefix(line, cursor);
+                ShowCommandParameters(command, options.Where(option => option.Matches(prefix)));
+                return;
+            }
             CommandHelp help = InteractiveCommands[command];
             string description = GetLanguage() == "cn" ? help.Chinese : help.English;
             Console.WriteLine();
@@ -664,10 +859,10 @@ internal static class EasyCmd
             return;
         }
 
-        string prefix = line.Substring(0, Math.Min(cursor, line.Length)).Trim();
+        string commandPrefix = line.Substring(0, Math.Min(cursor, line.Length)).Trim();
         ShowCommands(InteractiveCommands.Keys
             .Concat(new[] { "easycmd" })
-            .Where(commandName => commandName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Where(commandName => commandName.StartsWith(commandPrefix, StringComparison.OrdinalIgnoreCase))
             .OrderBy(commandName => commandName)
             .ToArray());
     }
@@ -693,6 +888,32 @@ internal static class EasyCmd
             }
             CommandHelp help = InteractiveCommands[command];
             Console.WriteLine("  {0,-18} {1}", command, chinese ? help.Chinese : help.English);
+        }
+    }
+
+    private static string GetCurrentParameterPrefix(string line, int cursor)
+    {
+        int index = Math.Min(cursor, line.Length);
+        while (index > 0 && !char.IsWhiteSpace(line[index - 1]))
+            index--;
+        return line.Substring(index, Math.Min(cursor, line.Length) - index);
+    }
+
+    private static void ShowCommandParameters(string command, IEnumerable<ParameterOption> options)
+    {
+        ParameterOption[] matches = options.ToArray();
+        bool chinese = GetLanguage() == "cn";
+        Console.WriteLine();
+        Console.WriteLine(chinese ? "  {0} 可用参数：" : "  {0} available parameters:", command);
+        if (matches.Length == 0)
+        {
+            Console.WriteLine(chinese ? "  没有匹配的参数。" : "  No matching parameters.");
+            return;
+        }
+
+        foreach (ParameterOption option in matches)
+        {
+            Console.WriteLine("  {0,-18} {1}", option.Canonical, chinese ? option.Chinese : option.English);
         }
     }
 
@@ -1136,7 +1357,9 @@ internal static class EasyCmd
             && IsIpv4Endpoint(arguments[0]))
         {
             string endpoint = arguments[0].IndexOf(':') < 0 ? arguments[0] + ":3389" : arguments[0];
-            return new[] { "/v:" + endpoint }.Concat(arguments.Skip(1)).ToArray();
+            return new[] { "/v:" + endpoint }
+                .Concat(NormalizeInteractiveParameters(command, arguments.Skip(1).ToArray()))
+                .ToArray();
         }
 
         if (string.Equals(command, "route", StringComparison.OrdinalIgnoreCase))
@@ -1167,10 +1390,24 @@ internal static class EasyCmd
             }
         }
 
+        arguments = NormalizeInteractiveParameters(command, arguments);
         if (ShouldNormalizeUrls(command))
             return arguments.Select(NormalizeArgument).ToArray();
 
         return arguments;
+    }
+
+    private static string[] NormalizeInteractiveParameters(string command, string[] arguments)
+    {
+        ParameterOption[] options;
+        if (!InteractiveParameters.TryGetValue(command, out options))
+            return arguments;
+
+        return arguments.Select(argument =>
+        {
+            ParameterOption option = options.FirstOrDefault(candidate => candidate.IsExactMatch(argument));
+            return option == null ? argument : option.Canonical;
+        }).ToArray();
     }
 
     private static bool IsIpv4Endpoint(string value)
@@ -1437,6 +1674,11 @@ internal static class EasyCmd
         Console.WriteLine(ProjectUrl);
     }
 
+    private static ParameterOption Option(string canonical, string chinese, string english, params string[] aliases)
+    {
+        return new ParameterOption(canonical, chinese, english, aliases);
+    }
+
     private sealed class ReleaseInfo
     {
         public Version Version { get; set; }
@@ -1455,5 +1697,39 @@ internal static class EasyCmd
         public string Chinese { get; private set; }
         public string English { get; private set; }
         public string Parameters { get; private set; }
+    }
+
+    private sealed class ParameterOption
+    {
+        public ParameterOption(string canonical, string chinese, string english, string[] aliases)
+        {
+            Canonical = canonical;
+            Chinese = chinese;
+            English = english;
+            Aliases = aliases ?? new string[0];
+        }
+
+        public string Canonical { get; private set; }
+        public string Chinese { get; private set; }
+        public string English { get; private set; }
+        public string[] Aliases { get; private set; }
+
+        public bool Matches(string prefix)
+        {
+            string normalizedPrefix = Normalize(prefix);
+            return Normalize(Canonical).StartsWith(normalizedPrefix, StringComparison.OrdinalIgnoreCase)
+                || Aliases.Any(alias => alias.StartsWith(normalizedPrefix, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool IsExactMatch(string value)
+        {
+            return string.Equals(Canonical, value, StringComparison.OrdinalIgnoreCase)
+                || Aliases.Any(alias => string.Equals(alias, Normalize(value), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string Normalize(string value)
+        {
+            return (value ?? string.Empty).TrimStart('-', '/');
+        }
     }
 }
