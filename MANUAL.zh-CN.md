@@ -22,9 +22,9 @@ nslookup abc.cn
 
 ## 2. 安装
 
-### PowerShell 一键安装
+### 自动安装
 
-打开 PowerShell，粘贴并执行以下命令。它会自动下载 GitHub 最新 Release、请求 UAC
+以管理员身份打开 PowerShell，粘贴并执行以下命令。它会自动下载 GitHub 最新 Release、请求 UAC
 授权、备份已安装版本、复制 `easycmd.exe` 到 `C:\Windows\System32`，并刷新 EasyCMD
 配置：
 
