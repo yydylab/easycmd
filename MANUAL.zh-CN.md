@@ -38,18 +38,40 @@ nslookup abc.cn
 `easycmd install` 会为当前用户写入
 `HKCU\Software\Microsoft\Command Processor\AutoRun`，刷新 EasyCMD 的全部宏和启动信息。
 
-## 3. 版本、启动信息与更新
+## 3. Tab 补全与 `?` 帮助
+
+安装 [Clink](https://github.com/chrisant996/clink) 后，再执行一次
+`easycmd install`，EasyCMD 会将自己的 `easycmd_completion.lua` 安装到当前用户的
+Clink 配置目录，提供类似网络设备 CLI 的补全和帮助；不会修改或删除其他 Clink 脚本。
+
+| 输入方式 | 结果 |
+| --- | --- |
+| 在空提示符直接按 `Tab` | 显示全部 EasyCMD 命令及中文备注。 |
+| 输入前缀如 `p` 后按 `Tab` 或 `?` | 唯一匹配时自动补全；存在多个匹配时显示 `ping`、`pathping`、`powercfg.cpl` 等候选项。 |
+| 输入 `ping ` 后按 `Tab` 或 `?` | 显示 `ping` 支持的参数及说明。 |
+| `easycmd cn` | 切换为中文补全与帮助说明。 |
+| `easycmd en` | 切换为英文补全与帮助说明。 |
+| `easycmd help` | 在普通输出中查看交互帮助速查。 |
+
+执行 `easycmd cn` 或 `easycmd en` 后，新开一个 CMD 窗口即可加载新的说明语言。
+补全目录包含常用网络命令及 Windows 工具，例如 `ncpa.cpl`、`service.msc`、`taskmgr`、
+`control`、`regedit`、`winver`、`notepad`、`calc` 等。
+
+## 4. 版本、启动信息与更新
 
 ```cmd
 easycmd -v
 easycmd update
+easycmd cn
+easycmd en
+easycmd help
 ```
 
 执行 `easycmd install` 后，每次新开 CMD 窗口都会在提示符前显示 EasyCMD 的版本、
 版权和项目地址。`easycmd update` 会检查 GitHub 最新 Release；有新版本时下载并请求
 UAC 授权完成替换。
 
-## 4. 命令简写
+## 5. 命令简写
 
 | 简写 | 实际命令 | 案例 | 拓展 |
 | --- | --- | --- | --- |
@@ -73,15 +95,16 @@ UAC 授权完成替换。
 | `rp` / `rp4` / `rp6` | `route print` | `rp4` | `rp` -> `route print`<br>`rp4` -> `route print -4`<br>`rp6` -> `route print -6` |
 | `nb` | `nbtstat` | `nb -n` | 原生参数可直接传入。 |
 
-## 5. 卸载
+## 6. 卸载
 
 ```cmd
 easycmd uninstall
 ```
 
-该操作仅移除当前用户的 EasyCMD 宏。
+该操作仅移除当前用户的 EasyCMD 宏和 EasyCMD 自己安装的 Clink 补全脚本，不会影响
+其他 Clink 配置或脚本。
 
-## 6. 构建与测试
+## 7. 构建与测试
 
 ```powershell
 .\build.ps1
@@ -90,7 +113,7 @@ easycmd uninstall
 
 EasyCMD 使用 Windows 自带的 .NET Framework C# 编译器，不依赖第三方运行时组件。
 
-## 7. 注意事项
+## 8. 注意事项
 
 - 仅转换以 `http://` 或 `https://` 开头的参数。
 - `curl` 会保留完整 URL。

@@ -19,6 +19,9 @@ internal static class EasyCmd
     private const string LegacyMacroMarker = "doskey ping=\"";
     private const string ProjectUrl = "https://github.com/yydylab/easycmd";
     private const string LatestReleaseApi = "https://api.github.com/repos/yydylab/easycmd/releases/latest";
+    private const string EasyCmdKey = @"Software\EasyCMD";
+    private const string LanguageValue = "Language";
+    private const string CompletionFileName = "easycmd_completion.lua";
 
     private static readonly IDictionary<string, string> Aliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -65,6 +68,14 @@ internal static class EasyCmd
                 return 0;
             case "update":
                 return Update();
+            case "cn":
+                return SetLanguage("cn");
+            case "en":
+                return SetLanguage("en");
+            case "help":
+            case "?":
+                PrintHelp();
+                return 0;
             case "install":
                 return Install();
             case "uninstall":
@@ -94,6 +105,7 @@ internal static class EasyCmd
             key.SetValue("AutoRun", updated, RegistryValueKind.String);
         }
 
+        InstallCompletionScript();
         Console.WriteLine("Installed or updated. Open a new CMD window to use EasyCMD shortcuts.");
         return 0;
     }
@@ -216,26 +228,95 @@ internal static class EasyCmd
 
     private static int Uninstall()
     {
+        bool installed = false;
         using (RegistryKey key = Registry.CurrentUser.CreateSubKey(CommandProcessorKey))
         {
             string current = key.GetValue("AutoRun", string.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames) as string ?? string.Empty;
             int markerIndex = current.IndexOf(MacroMarker, StringComparison.OrdinalIgnoreCase);
             if (markerIndex < 0)
             {
-                Console.WriteLine("EasyCMD is not installed for the current user.");
-                return 0;
+                Console.WriteLine("EasyCMD macros are not installed for the current user.");
             }
-
-            string updated = RemoveMacroGroup(current, MacroMarker);
-
-            if (string.IsNullOrEmpty(updated))
-                key.DeleteValue("AutoRun", false);
             else
-                key.SetValue("AutoRun", updated, RegistryValueKind.String);
+            {
+                string updated = RemoveMacroGroup(current, MacroMarker);
+
+                if (string.IsNullOrEmpty(updated))
+                    key.DeleteValue("AutoRun", false);
+                else
+                    key.SetValue("AutoRun", updated, RegistryValueKind.String);
+                installed = true;
+            }
         }
 
-        Console.WriteLine("Uninstalled. New CMD windows will no longer load EasyCMD macros.");
+        RemoveCompletionScript();
+        Console.WriteLine(installed
+            ? "Uninstalled. New CMD windows will no longer load EasyCMD macros."
+            : "Removed the EasyCMD Clink help script, if it was installed.");
         return 0;
+    }
+
+    private static int SetLanguage(string language)
+    {
+        using (RegistryKey key = Registry.CurrentUser.CreateSubKey(EasyCmdKey))
+        {
+            key.SetValue(LanguageValue, language, RegistryValueKind.String);
+        }
+
+        Console.WriteLine(language == "cn"
+            ? "EasyCMD help language set to Chinese. Open a new CMD window to refresh completion descriptions."
+            : "EasyCMD help language set to English. Open a new CMD window to refresh completion descriptions.");
+        return 0;
+    }
+
+    private static void InstallCompletionScript()
+    {
+        string profile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "clink");
+        if (!Directory.Exists(profile))
+        {
+            Console.WriteLine("Clink was not found. EasyCMD shortcuts are ready; install Clink to enable Tab and ? help.");
+            return;
+        }
+
+        try
+        {
+            string destination = Path.Combine(profile, CompletionFileName);
+            using (Stream source = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("EasyCMD.Completion.lua"))
+            {
+                if (source == null)
+                    throw new InvalidOperationException("The embedded Clink completion script is missing.");
+
+                using (FileStream target = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.Read))
+                {
+                    source.CopyTo(target);
+                }
+            }
+            Console.WriteLine("Installed Clink Tab and ? help: {0}", destination);
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine("EasyCMD shortcuts were installed, but Clink help could not be installed: {0}", error.Message);
+        }
+    }
+
+    private static void RemoveCompletionScript()
+    {
+        try
+        {
+            string completion = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "clink",
+                CompletionFileName);
+            if (File.Exists(completion))
+                File.Delete(completion);
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine("Unable to remove EasyCMD Clink help: {0}", error.Message);
+        }
     }
 
     private static string BuildMacro(string executable)
@@ -615,9 +696,21 @@ internal static class EasyCmd
         Console.WriteLine("EasyCMD - easy CMD network command shortcuts.");
         Console.WriteLine("  easycmd.exe -v");
         Console.WriteLine("  easycmd.exe update");
+        Console.WriteLine("  easycmd.exe cn | en");
+        Console.WriteLine("  easycmd.exe help");
         Console.WriteLine("  easycmd.exe install");
         Console.WriteLine("  easycmd.exe uninstall");
         Console.WriteLine("  easycmd.exe normalize ping https://example.com/path");
+    }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine("EasyCMD interactive help");
+        Console.WriteLine("  Tab: complete an EasyCMD command or list matching commands.");
+        Console.WriteLine("  ?: list all commands, commands matching a prefix, or command parameters.");
+        Console.WriteLine("  easycmd cn: use Chinese completion descriptions.");
+        Console.WriteLine("  easycmd en: use English completion descriptions.");
+        Console.WriteLine("  Requires Clink. Run easycmd install after installing Clink.");
     }
 
     private static void PrintBanner()

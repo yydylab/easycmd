@@ -24,11 +24,33 @@ extracts the host name before running the native Windows command.
 
 Running `easycmd install` refreshes all EasyCMD macros and startup information.
 
+## Interactive Tab And Help
+
+EasyCMD adds an interactive command guide when [Clink](https://github.com/chrisant996/clink)
+is installed. Run `easycmd install` again after installing Clink; this copies only
+EasyCMD's `easycmd_completion.lua` into the current user's Clink profile.
+
+| Input | Result |
+| --- | --- |
+| Press `Tab` at an empty prompt | Lists EasyCMD commands with descriptions. |
+| Type a prefix such as `p`, then press `Tab` or `?` | Completes a unique command, or lists matching commands such as `ping`, `pathping`, and `powercfg.cpl`. |
+| Type `ping `, then press `Tab` or `?` | Lists supported `ping` arguments with descriptions. |
+| `easycmd cn` | Switches completion descriptions to Chinese. |
+| `easycmd en` | Switches completion descriptions to English. |
+| `easycmd help` | Prints the interactive-help quick reference. |
+
+Open a new CMD window after switching language to reload the Clink script. The
+completion catalog also includes commonly used Windows tools such as `ncpa.cpl`,
+`service.msc`, `taskmgr`, `control`, `regedit`, `winver`, `notepad`, and `calc`.
+
 ## Version And Updates
 
 ```cmd
 easycmd -v
 easycmd update
+easycmd cn
+easycmd en
+easycmd help
 ```
 
 After `easycmd install`, every newly opened CMD window displays the EasyCMD
@@ -67,6 +89,8 @@ easycmd uninstall
 ```
 
 This removes only EasyCMD macros from the current user's CMD AutoRun setting.
+It also removes only EasyCMD's Clink completion script, leaving other Clink
+scripts and settings intact.
 
 ## Build And Test
 

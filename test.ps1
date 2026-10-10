@@ -39,32 +39,79 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.9.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.10.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
 }
 Write-Host "PASS version banner"
 
-$key = 'HKCU:\Software\Microsoft\Command Processor'
-$legacyAutoRun = [string](Get-ItemProperty -Path $key -ErrorAction SilentlyContinue).AutoRun
-& .\easycmd.exe install | Out-Null
-$migratedAutoRun = [string](Get-ItemProperty -Path $key).AutoRun
-if ($legacyAutoRun -match 'acmd\.exe' -and $migratedAutoRun -match 'acmd\.exe') {
-    throw 'Install did not remove legacy ACMD macros.'
-}
-& .\easycmd.exe uninstall | Out-Null
-$before = [string](Get-ItemProperty -Path $key -ErrorAction SilentlyContinue).AutoRun
-& .\easycmd.exe install
-$installed = [string](Get-ItemProperty -Path $key).AutoRun
-foreach ($macro in @('doskey cc=', 'doskey ia=', 'doskey rp=', 'doskey tp=')) {
-    if ($installed -notmatch [regex]::Escape($macro)) {
-        throw "Install did not register $macro."
+$help = (& .\easycmd.exe help) -join "`n"
+foreach ($expected in @('Tab: complete an EasyCMD command', 'easycmd cn: use Chinese', 'Requires Clink')) {
+    if (-not $help.Contains($expected)) {
+        throw "Help output does not contain '$expected'."
     }
 }
-& .\easycmd.exe uninstall
-$after = [string](Get-ItemProperty -Path $key -ErrorAction SilentlyContinue).AutoRun
-if ($after -cne $before) {
-    throw 'Uninstall did not restore the prior AutoRun setting.'
+& .\easycmd.exe cn | Out-Null
+$language = [string](Get-ItemProperty -Path 'HKCU:\Software\EasyCMD').Language
+if ($language -ne 'cn') {
+    throw 'easycmd cn did not save the Chinese help language.'
 }
-Write-Host "PASS EasyCMD macro install and uninstall"
+& .\easycmd.exe en | Out-Null
+$language = [string](Get-ItemProperty -Path 'HKCU:\Software\EasyCMD').Language
+if ($language -ne 'en') {
+    throw 'easycmd en did not save the English help language.'
+}
+if (-not (Test-Path .\easycmd_completion.lua)) {
+    throw 'EasyCMD Clink completion script is missing.'
+}
+Write-Host "PASS interactive help settings"
+
+$key = 'HKCU:\Software\Microsoft\Command Processor'
+$originalAutoRun = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoRun -ErrorAction SilentlyContinue
+$completionPath = Join-Path $env:LOCALAPPDATA 'clink\easycmd_completion.lua'
+$completionBackup = if (Test-Path $completionPath) { [IO.File]::ReadAllBytes($completionPath) } else { $null }
+$languageKey = 'HKCU:\Software\EasyCMD'
+$originalLanguage = Get-ItemProperty -Path $languageKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Language -ErrorAction SilentlyContinue
+
+try {
+    $legacyAutoRun = [string]$originalAutoRun
+    & .\easycmd.exe install | Out-Null
+    $migratedAutoRun = [string](Get-ItemProperty -Path $key).AutoRun
+    if ($legacyAutoRun -match 'acmd\.exe' -and $migratedAutoRun -match 'acmd\.exe') {
+        throw 'Install did not remove legacy ACMD macros.'
+    }
+
+    foreach ($macro in @('doskey cc=', 'doskey ia=', 'doskey rp=', 'doskey tp=')) {
+        if ($migratedAutoRun -notmatch [regex]::Escape($macro)) {
+            throw "Install did not register $macro."
+        }
+    }
+    if (-not (Test-Path $completionPath)) {
+        throw 'Install did not deploy the EasyCMD Clink completion script.'
+    }
+    & .\easycmd.exe uninstall | Out-Null
+    Write-Host "PASS EasyCMD macro install and uninstall"
+}
+finally {
+    if ($null -eq $originalAutoRun) {
+        Remove-ItemProperty -Path $key -Name AutoRun -ErrorAction SilentlyContinue
+    }
+    else {
+        Set-ItemProperty -Path $key -Name AutoRun -Value $originalAutoRun
+    }
+
+    if ($null -eq $completionBackup) {
+        Remove-Item $completionPath -Force -ErrorAction SilentlyContinue
+    }
+    else {
+        [IO.File]::WriteAllBytes($completionPath, $completionBackup)
+    }
+
+    if ($null -eq $originalLanguage) {
+        Remove-ItemProperty -Path $languageKey -Name Language -ErrorAction SilentlyContinue
+    }
+    else {
+        Set-ItemProperty -Path $languageKey -Name Language -Value $originalLanguage
+    }
+}
