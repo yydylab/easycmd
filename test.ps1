@@ -42,7 +42,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.15.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.16.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -91,7 +91,7 @@ foreach ($expected in @('EasyCmdCommands', 'CompleteEasyCmdLine', 'ShowEasyCmdHe
 Write-Host "PASS EasyCMD command completion"
 
 $source = Get-Content -Raw .\EasyCmd.cs
-foreach ($expected in @('ExecuteEasyCmdSubcommand', 'UseShellExecute = true', 'RunCmdBuiltin', 'Arguments = "/d /c " + line')) {
+foreach ($expected in @('ExecuteEasyCmdSubcommand', 'UseShellExecute = true', 'RunCmdBuiltin', 'Arguments = "/d /c " + line', 'InteractiveGuiCommands', 'IsInteractiveGuiCommand', 'Console.CancelKeyPress')) {
     if (-not $source.Contains($expected)) {
         throw "Interactive execution source does not contain '$expected'."
     }

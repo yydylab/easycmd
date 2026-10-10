@@ -24,6 +24,13 @@ internal static class EasyCmd
     private const string LanguageValue = "Language";
     private const int MaximumHistoryEntries = 500;
     private static bool updateScheduled;
+    private static readonly ISet<string> InteractiveGuiCommands =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "calc", "control", "excel", "hdwwiz", "msconfig", "msinfo32",
+            "notepad", "optionalfeatures", "regedit", "taskmgr", "winver",
+            "winword", "mstsc"
+        };
 
     private static readonly IDictionary<string, CommandHelp> InteractiveCommands =
         new Dictionary<string, CommandHelp>(StringComparer.OrdinalIgnoreCase)
@@ -386,47 +393,60 @@ internal static class EasyCmd
     private static int Shell()
     {
         List<string> history = LoadHistory();
-        Console.WriteLine("EasyCMD interactive mode. Press Tab or ? for help; use Up/Down for history; type exit to return to CMD.");
-        while (true)
+        ConsoleCancelEventHandler cancelHandler = delegate(object sender, ConsoleCancelEventArgs args)
         {
-            string line = ReadInteractiveLine(history);
-            if (line == null)
-                return 0;
-
-            string trimmed = line.Trim();
-            if (trimmed.Length == 0)
-                continue;
-            if (string.Equals(trimmed, "exit", StringComparison.OrdinalIgnoreCase))
-                return 0;
-            if (IsInteractiveUpdateCommand(trimmed))
+            // Keep Ctrl+C from terminating the EasyCMD input loop.
+            args.Cancel = true;
+        };
+        Console.CancelKeyPress += cancelHandler;
+        Console.WriteLine("EasyCMD interactive mode. Press Tab or ? for help; use Up/Down for history; type exit to return to CMD.");
+        try
+        {
+            while (true)
             {
+                string line = ReadInteractiveLine(history);
+                if (line == null)
+                    return 0;
+
+                string trimmed = line.Trim();
+                if (trimmed.Length == 0)
+                    continue;
+                if (string.Equals(trimmed, "exit", StringComparison.OrdinalIgnoreCase))
+                    return 0;
+                if (IsInteractiveUpdateCommand(trimmed))
+                {
+                    AddHistory(history, line);
+                    int updateExitCode = Update();
+                    // The updater replaces this executable, so release its file handle immediately.
+                    if (updateScheduled)
+                        return updateExitCode;
+                    continue;
+                }
+                if (string.Equals(trimmed, "history", StringComparison.OrdinalIgnoreCase)
+                    || trimmed.StartsWith("history ", StringComparison.OrdinalIgnoreCase))
+                {
+                    History(SplitArguments(trimmed).Skip(1).ToArray());
+                    continue;
+                }
                 AddHistory(history, line);
-                int updateExitCode = Update();
-                // The updater replaces this executable, so release its file handle immediately.
-                if (updateScheduled)
-                    return updateExitCode;
-                continue;
-            }
-            if (string.Equals(trimmed, "history", StringComparison.OrdinalIgnoreCase)
-                || trimmed.StartsWith("history ", StringComparison.OrdinalIgnoreCase))
-            {
-                History(SplitArguments(trimmed).Skip(1).ToArray());
-                continue;
-            }
-            AddHistory(history, line);
-            if (string.Equals(trimmed, "cls", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.Clear();
-                continue;
-            }
-            if (string.Equals(trimmed, "help", StringComparison.OrdinalIgnoreCase))
-            {
-                PrintHelp();
-                continue;
-            }
+                if (string.Equals(trimmed, "cls", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.Clear();
+                    continue;
+                }
+                if (string.Equals(trimmed, "help", StringComparison.OrdinalIgnoreCase))
+                {
+                    PrintHelp();
+                    continue;
+                }
 
-            if (ExecuteInteractiveLine(line))
-                return 0;
+                if (ExecuteInteractiveLine(line))
+                    return 0;
+            }
+        }
+        finally
+        {
+            Console.CancelKeyPress -= cancelHandler;
         }
     }
 
@@ -849,7 +869,8 @@ internal static class EasyCmd
                 UseShellExecute = true
             }))
             {
-                child.WaitForExit();
+                if (!IsInteractiveGuiCommand(command))
+                    child.WaitForExit();
             }
         }
         catch (Exception error)
@@ -857,6 +878,16 @@ internal static class EasyCmd
             RunCmdBuiltin(line, error);
         }
         return false;
+    }
+
+    private static bool IsInteractiveGuiCommand(string command)
+    {
+        string filename = Path.GetFileName(command);
+        string extension = Path.GetExtension(filename);
+        string commandName = Path.GetFileNameWithoutExtension(filename);
+        return string.Equals(extension, ".cpl", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".msc", StringComparison.OrdinalIgnoreCase)
+            || InteractiveGuiCommands.Contains(commandName);
     }
 
     private static void RunCmdBuiltin(string line, Exception directStartError)
@@ -990,6 +1021,8 @@ internal static class EasyCmd
 
             using (Process child = Process.Start(startInfo))
             {
+                if (IsInteractiveGuiCommand(nativeCommand))
+                    return 0;
                 child.WaitForExit();
                 return child.ExitCode;
             }
