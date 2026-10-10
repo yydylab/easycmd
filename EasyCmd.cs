@@ -14,6 +14,7 @@ internal static class EasyCmd
     private const string CommandProcessorKey = @"Software\Microsoft\Command Processor";
     private const string MacroMarker = "easycmd.exe\" run ping $*";
     private const string BannerMarker = "easycmd.exe\" banner";
+    private const string ShellMarker = "easycmd.exe\" shell";
     private const string LegacyAcmdMacroMarker = "acmd.exe\" run ping $*";
     private const string LegacyAcmdBannerMarker = "acmd.exe\" banner";
     private const string LegacyMacroMarker = "doskey ping=\"";
@@ -21,7 +22,53 @@ internal static class EasyCmd
     private const string LatestReleaseApi = "https://api.github.com/repos/yydylab/easycmd/releases/latest";
     private const string EasyCmdKey = @"Software\EasyCMD";
     private const string LanguageValue = "Language";
-    private const string CompletionFileName = "easycmd_completion.lua";
+
+    private static readonly IDictionary<string, CommandHelp> InteractiveCommands =
+        new Dictionary<string, CommandHelp>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ping", new CommandHelp("Ping test", "Ping connectivity", "-t Continuous ping|-n COUNT Request count|-w TIMEOUT Timeout in milliseconds") },
+            { "tracert", new CommandHelp("Trace route", "Trace network route", "-d Do not resolve names|-h MAX_HOPS Maximum hops|-w TIMEOUT Timeout in milliseconds") },
+            { "nslookup", new CommandHelp("DNS query", "Query DNS records", "HOST Domain, IP, or URL|SERVER DNS server") },
+            { "pathping", new CommandHelp("Path and packet loss test", "Trace route and packet loss", "-n Do not resolve names|-h MAX_HOPS Maximum hops|-w TIMEOUT Timeout in milliseconds") },
+            { "route", new CommandHelp("View or manage routes", "View or manage IP routes", "print Display route table|add Add route|delete Delete route|change Change route") },
+            { "ipconfig", new CommandHelp("View IP configuration", "Show IP configuration", "/all Full TCP/IP configuration|/flushdns Flush DNS cache|/release Release IPv4 address|/renew Renew IPv4 address") },
+            { "getmac", new CommandHelp("View MAC addresses", "Show MAC addresses", "/v Verbose output") },
+            { "netsh", new CommandHelp("Network configuration console", "Network configuration console", "interface Network interfaces|advfirewall Advanced Firewall|wlan Wireless settings|winhttp WinHTTP proxy") },
+            { "nbtstat", new CommandHelp("NetBIOS diagnostics", "NetBIOS diagnostics", "-n Local NetBIOS names|-a NAME Remote name table") },
+            { "telnet", new CommandHelp("Telnet client", "Telnet client", "HOST Target host|PORT Target port") },
+            { "arp", new CommandHelp("ARP cache management", "Manage ARP cache", "-a Display ARP cache|-d Delete entry|-s Add static entry") },
+            { "tcping", new CommandHelp("TCP port reachability test", "Test TCP port connectivity", "HOST Target host|PORT TCP port; tp defaults to 22|-t Continuous probe") },
+            { "mstsc", new CommandHelp("Remote Desktop connection", "Remote Desktop Connection", "HOST[:PORT] Target RDP host|/admin Admin session|/f Full screen") },
+            { "ncpa.cpl", new CommandHelp("Open network adapters", "Open Network Connections", string.Empty) },
+            { "ftp", new CommandHelp("FTP client", "FTP client", "HOST FTP server") },
+            { "ssh", new CommandHelp("Secure Shell client", "Secure Shell client", "USER@HOST User and host|-p PORT SSH port") },
+            { "curl", new CommandHelp("HTTP transfer tool", "HTTP transfer tool", "URL Full URL|-I Headers only|-L Follow redirects|-o FILE Output file") },
+            { "wget", new CommandHelp("Download tool", "Download tool", "URL Download URL") },
+            { "service.msc", new CommandHelp("Open Services", "Open Services console", string.Empty) },
+            { "tasklist", new CommandHelp("View running processes", "List running processes", "/v Verbose output") },
+            { "tar", new CommandHelp("Archive tool", "Archive utility", "-x Extract|-c Create|-f FILE Archive file") },
+            { "optionalfeatures", new CommandHelp("Windows optional features", "Open Windows Features", string.Empty) },
+            { "firewall.cpl", new CommandHelp("Windows Defender Firewall", "Open Windows Defender Firewall", string.Empty) },
+            { "sysdm.cpl", new CommandHelp("System properties", "Open System Properties", string.Empty) },
+            { "powercfg.cpl", new CommandHelp("Power options", "Open Power Options", string.Empty) },
+            { "msinfo32", new CommandHelp("System information", "Open System Information", string.Empty) },
+            { "inetcpl.cpl", new CommandHelp("Internet options", "Open Internet Options", string.Empty) },
+            { "appwiz.cpl", new CommandHelp("Programs and Features", "Open Programs and Features", string.Empty) },
+            { "msconfig", new CommandHelp("System configuration", "Open System Configuration", string.Empty) },
+            { "notepad", new CommandHelp("Notepad", "Open Notepad", string.Empty) },
+            { "calc", new CommandHelp("Calculator", "Open Calculator", string.Empty) },
+            { "drivers", new CommandHelp("Driver management", "Driver management", string.Empty) },
+            { "control", new CommandHelp("Control Panel", "Open Control Panel", string.Empty) },
+            { "desk.cpl", new CommandHelp("Display settings", "Open Display Settings", string.Empty) },
+            { "winver", new CommandHelp("Windows version", "Show Windows version", string.Empty) },
+            { "winword", new CommandHelp("Microsoft Word", "Open Microsoft Word", string.Empty) },
+            { "excel", new CommandHelp("Microsoft Excel", "Open Microsoft Excel", string.Empty) },
+            { "timedate.cpl", new CommandHelp("Date and time settings", "Open Date and Time", string.Empty) },
+            { "intl.cpl", new CommandHelp("Region settings", "Open Region settings", string.Empty) },
+            { "regedit", new CommandHelp("Registry Editor", "Open Registry Editor", string.Empty) },
+            { "taskmgr", new CommandHelp("Task Manager", "Open Task Manager", string.Empty) },
+            { "hdwwiz", new CommandHelp("Add Hardware Wizard", "Open Add Hardware Wizard", string.Empty) }
+        };
 
     private static readonly IDictionary<string, string> Aliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -68,6 +115,8 @@ internal static class EasyCmd
                 return 0;
             case "update":
                 return Update();
+            case "shell":
+                return Shell();
             case "cn":
                 return SetLanguage("cn");
             case "en":
@@ -105,8 +154,7 @@ internal static class EasyCmd
             key.SetValue("AutoRun", updated, RegistryValueKind.String);
         }
 
-        InstallCompletionScript();
-        Console.WriteLine("Installed or updated. Open a new CMD window to use EasyCMD shortcuts.");
+        Console.WriteLine("Installed or updated. Open a new CMD window to use EasyCMD shortcuts, Tab completion, and ? help.");
         return 0;
     }
 
@@ -249,10 +297,9 @@ internal static class EasyCmd
             }
         }
 
-        RemoveCompletionScript();
         Console.WriteLine(installed
             ? "Uninstalled. New CMD windows will no longer load EasyCMD macros."
-            : "Removed the EasyCMD Clink help script, if it was installed.");
+            : "EasyCMD is not installed for the current user.");
         return 0;
     }
 
@@ -264,66 +311,277 @@ internal static class EasyCmd
         }
 
         Console.WriteLine(language == "cn"
-            ? "EasyCMD help language set to Chinese. Open a new CMD window to refresh completion descriptions."
-            : "EasyCMD help language set to English. Open a new CMD window to refresh completion descriptions.");
+            ? "EasyCMD help language set to Chinese."
+            : "EasyCMD help language set to English.");
         return 0;
-    }
-
-    private static void InstallCompletionScript()
-    {
-        string profile = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "clink");
-        if (!Directory.Exists(profile))
-        {
-            Console.WriteLine("Clink was not found. EasyCMD shortcuts are ready; install Clink to enable Tab and ? help.");
-            return;
-        }
-
-        try
-        {
-            string destination = Path.Combine(profile, CompletionFileName);
-            using (Stream source = Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream("EasyCMD.Completion.lua"))
-            {
-                if (source == null)
-                    throw new InvalidOperationException("The embedded Clink completion script is missing.");
-
-                using (FileStream target = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.Read))
-                {
-                    source.CopyTo(target);
-                }
-            }
-            Console.WriteLine("Installed Clink Tab and ? help: {0}", destination);
-        }
-        catch (Exception error)
-        {
-            Console.Error.WriteLine("EasyCMD shortcuts were installed, but Clink help could not be installed: {0}", error.Message);
-        }
-    }
-
-    private static void RemoveCompletionScript()
-    {
-        try
-        {
-            string completion = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "clink",
-                CompletionFileName);
-            if (File.Exists(completion))
-                File.Delete(completion);
-        }
-        catch (Exception error)
-        {
-            Console.Error.WriteLine("Unable to remove EasyCMD Clink help: {0}", error.Message);
-        }
     }
 
     private static string BuildMacro(string executable)
     {
         string quotedExecutable = QuoteForCmd(executable);
         return quotedExecutable + " banner & " + string.Join(" & ", Aliases.Select(alias =>
-            "doskey " + alias.Key + "=" + quotedExecutable + " run " + alias.Value + " $*"));
+            "doskey " + alias.Key + "=" + quotedExecutable + " run " + alias.Value + " $*"))
+            + " & " + quotedExecutable + " shell";
+    }
+
+    private static int Shell()
+    {
+        Console.WriteLine("EasyCMD interactive mode. Press Tab or ? for help; type exit to return to CMD.");
+        while (true)
+        {
+            string line = ReadInteractiveLine();
+            if (line == null)
+                return 0;
+
+            string trimmed = line.Trim();
+            if (trimmed.Length == 0)
+                continue;
+            if (string.Equals(trimmed, "exit", StringComparison.OrdinalIgnoreCase))
+                return 0;
+            if (string.Equals(trimmed, "cls", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Clear();
+                continue;
+            }
+            if (string.Equals(trimmed, "help", StringComparison.OrdinalIgnoreCase))
+            {
+                PrintHelp();
+                continue;
+            }
+
+            ExecuteInteractiveLine(line);
+        }
+    }
+
+    private static string ReadInteractiveLine()
+    {
+        var buffer = new System.Text.StringBuilder();
+        int cursor = 0;
+        while (true)
+        {
+            string prompt = Environment.CurrentDirectory + ">";
+            RedrawInteractiveLine(prompt, buffer.ToString(), cursor);
+            ConsoleKeyInfo key;
+            try
+            {
+                key = Console.ReadKey(true);
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
+            if (key.Key == ConsoleKey.Enter)
+            {
+                Console.WriteLine();
+                return buffer.ToString();
+            }
+            if (key.Key == ConsoleKey.Backspace && cursor > 0)
+            {
+                buffer.Remove(--cursor, 1);
+                continue;
+            }
+            if (key.Key == ConsoleKey.Delete && cursor < buffer.Length)
+            {
+                buffer.Remove(cursor, 1);
+                continue;
+            }
+            if (key.Key == ConsoleKey.LeftArrow && cursor > 0)
+            {
+                cursor--;
+                continue;
+            }
+            if (key.Key == ConsoleKey.RightArrow && cursor < buffer.Length)
+            {
+                cursor++;
+                continue;
+            }
+            if (key.Key == ConsoleKey.Home)
+            {
+                cursor = 0;
+                continue;
+            }
+            if (key.Key == ConsoleKey.End)
+            {
+                cursor = buffer.Length;
+                continue;
+            }
+            if (key.Key == ConsoleKey.Tab)
+            {
+                CompleteInteractiveLine(buffer, ref cursor);
+                continue;
+            }
+            if (key.KeyChar == '?')
+            {
+                ShowInteractiveHelp(buffer.ToString(), cursor);
+                continue;
+            }
+            if (!char.IsControl(key.KeyChar))
+            {
+                buffer.Insert(cursor++, key.KeyChar);
+            }
+        }
+    }
+
+    private static void RedrawInteractiveLine(string prompt, string line, int cursor)
+    {
+        Console.Write("\r" + prompt + line + " ");
+        Console.Write("\r" + prompt + line.Substring(0, cursor));
+    }
+
+    private static void CompleteInteractiveLine(System.Text.StringBuilder buffer, ref int cursor)
+    {
+        string line = buffer.ToString();
+        string firstWord = GetFirstWord(line);
+        if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(firstWord))
+        {
+            ShowInteractiveHelp(line, cursor);
+            return;
+        }
+
+        string prefix = line.Substring(0, cursor).Trim();
+        if (prefix.IndexOf(' ') >= 0)
+            return;
+
+        string[] matches = InteractiveCommands.Keys
+            .Where(command => command.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(command => command)
+            .ToArray();
+        if (matches.Length == 1)
+        {
+            buffer.Clear();
+            buffer.Append(matches[0]).Append(' ');
+            cursor = buffer.Length;
+            return;
+        }
+        ShowCommands(matches);
+    }
+
+    private static void ShowInteractiveHelp(string line, int cursor)
+    {
+        string command = GetFirstWord(line);
+        if (line.IndexOf(' ') >= 0 && InteractiveCommands.ContainsKey(command))
+        {
+            CommandHelp help = InteractiveCommands[command];
+            string description = GetLanguage() == "cn" ? help.Chinese : help.English;
+            Console.WriteLine();
+            Console.WriteLine("  {0}  {1}", command, description);
+            foreach (string item in help.Parameters.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                Console.WriteLine("  {0}", item);
+            return;
+        }
+
+        string prefix = line.Substring(0, Math.Min(cursor, line.Length)).Trim();
+        ShowCommands(InteractiveCommands.Keys
+            .Where(commandName => commandName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(commandName => commandName)
+            .ToArray());
+    }
+
+    private static void ShowCommands(IEnumerable<string> names)
+    {
+        string[] commands = names.ToArray();
+        Console.WriteLine();
+        if (commands.Length == 0)
+        {
+            Console.WriteLine("  No matching EasyCMD commands.");
+            return;
+        }
+
+        bool chinese = GetLanguage() == "cn";
+        Console.WriteLine(chinese ? "  EasyCMD 可用命令：" : "  EasyCMD available commands:");
+        foreach (string command in commands)
+        {
+            CommandHelp help = InteractiveCommands[command];
+            Console.WriteLine("  {0,-18} {1}", command, chinese ? help.Chinese : help.English);
+        }
+    }
+
+    private static string GetFirstWord(string line)
+    {
+        string trimmed = (line ?? string.Empty).TrimStart();
+        int end = trimmed.IndexOfAny(new[] { ' ', '\t' });
+        return (end < 0 ? trimmed : trimmed.Substring(0, end)).ToLowerInvariant();
+    }
+
+    private static string GetLanguage()
+    {
+        using (RegistryKey key = Registry.CurrentUser.CreateSubKey(EasyCmdKey))
+        {
+            return (key.GetValue(LanguageValue, "en") as string ?? "en").ToLowerInvariant();
+        }
+    }
+
+    private static void ExecuteInteractiveLine(string line)
+    {
+        string[] parts = SplitArguments(line);
+        if (parts.Length == 0)
+            return;
+
+        string command = parts[0];
+        if (string.Equals(command, "cd", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(command, "chdir", StringComparison.OrdinalIgnoreCase))
+        {
+            string path = parts.Length > 1 ? parts[1] : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            try { Environment.CurrentDirectory = Path.GetFullPath(path); }
+            catch (Exception error) { Console.Error.WriteLine("The system cannot find the path specified: {0}", error.Message); }
+            return;
+        }
+
+        string normalizedCommand;
+        if (Aliases.TryGetValue(command, out normalizedCommand))
+            command = normalizedCommand;
+
+        if (IsSupportedCommand(command))
+        {
+            Run(new[] { command }.Concat(parts.Skip(1)).ToArray());
+            return;
+        }
+
+        try
+        {
+            using (Process child = Process.Start(new ProcessStartInfo
+            {
+                FileName = Environment.GetEnvironmentVariable("ComSpec"),
+                Arguments = "/c " + line,
+                UseShellExecute = false
+            }))
+            {
+                child.WaitForExit();
+            }
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine("Unable to start {0}: {1}", parts[0], error.Message);
+        }
+    }
+
+    private static string[] SplitArguments(string line)
+    {
+        var arguments = new List<string>();
+        var current = new System.Text.StringBuilder();
+        bool quoted = false;
+        foreach (char character in line)
+        {
+            if (character == '"')
+            {
+                quoted = !quoted;
+                continue;
+            }
+            if (char.IsWhiteSpace(character) && !quoted)
+            {
+                if (current.Length > 0)
+                {
+                    arguments.Add(current.ToString());
+                    current.Clear();
+                }
+                continue;
+            }
+            current.Append(character);
+        }
+        if (current.Length > 0)
+            arguments.Add(current.ToString());
+        return arguments.ToArray();
     }
 
     private static int Run(string[] args)
@@ -598,6 +856,12 @@ internal static class EasyCmd
                     lastMacro = macro;
             }
             int segmentEnd = lastMacro < 0 ? -1 : current.IndexOf(" & ", lastMacro);
+            int shellIndex = current.IndexOf(ShellMarker, lastMacro < 0 ? markerIndex : lastMacro,
+                StringComparison.OrdinalIgnoreCase);
+            if (shellIndex >= 0)
+            {
+                segmentEnd = current.IndexOf(" & ", shellIndex);
+            }
             if (segmentEnd < 0)
                 segmentEnd = current.Length;
 
@@ -696,6 +960,7 @@ internal static class EasyCmd
         Console.WriteLine("EasyCMD - easy CMD network command shortcuts.");
         Console.WriteLine("  easycmd.exe -v");
         Console.WriteLine("  easycmd.exe update");
+        Console.WriteLine("  easycmd.exe shell");
         Console.WriteLine("  easycmd.exe cn | en");
         Console.WriteLine("  easycmd.exe help");
         Console.WriteLine("  easycmd.exe install");
@@ -710,7 +975,7 @@ internal static class EasyCmd
         Console.WriteLine("  ?: list all commands, commands matching a prefix, or command parameters.");
         Console.WriteLine("  easycmd cn: use Chinese completion descriptions.");
         Console.WriteLine("  easycmd en: use English completion descriptions.");
-        Console.WriteLine("  Requires Clink. Run easycmd install after installing Clink.");
+        Console.WriteLine("  No third-party command-line extension is required.");
     }
 
     private static void PrintBanner()
@@ -725,5 +990,19 @@ internal static class EasyCmd
     {
         public Version Version { get; set; }
         public string DownloadUrl { get; set; }
+    }
+
+    private sealed class CommandHelp
+    {
+        public CommandHelp(string chinese, string english, string parameters)
+        {
+            Chinese = chinese;
+            English = english;
+            Parameters = parameters;
+        }
+
+        public string Chinese { get; private set; }
+        public string English { get; private set; }
+        public string Parameters { get; private set; }
     }
 }

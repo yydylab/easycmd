@@ -39,7 +39,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.10.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.11.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -47,7 +47,7 @@ foreach ($expected in @('easycmd v0.1.10.0', 'Copyright (c) 2026 yydylab', 'http
 Write-Host "PASS version banner"
 
 $help = (& .\easycmd.exe help) -join "`n"
-foreach ($expected in @('Tab: complete an EasyCMD command', 'easycmd cn: use Chinese', 'Requires Clink')) {
+foreach ($expected in @('Tab: complete an EasyCMD command', 'easycmd cn: use Chinese', 'No third-party command-line extension')) {
     if (-not $help.Contains($expected)) {
         throw "Help output does not contain '$expected'."
     }
@@ -62,15 +62,10 @@ $language = [string](Get-ItemProperty -Path 'HKCU:\Software\EasyCMD').Language
 if ($language -ne 'en') {
     throw 'easycmd en did not save the English help language.'
 }
-if (-not (Test-Path .\easycmd_completion.lua)) {
-    throw 'EasyCMD Clink completion script is missing.'
-}
 Write-Host "PASS interactive help settings"
 
 $key = 'HKCU:\Software\Microsoft\Command Processor'
 $originalAutoRun = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoRun -ErrorAction SilentlyContinue
-$completionPath = Join-Path $env:LOCALAPPDATA 'clink\easycmd_completion.lua'
-$completionBackup = if (Test-Path $completionPath) { [IO.File]::ReadAllBytes($completionPath) } else { $null }
 $languageKey = 'HKCU:\Software\EasyCMD'
 $originalLanguage = Get-ItemProperty -Path $languageKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Language -ErrorAction SilentlyContinue
 
@@ -87,8 +82,8 @@ try {
             throw "Install did not register $macro."
         }
     }
-    if (-not (Test-Path $completionPath)) {
-        throw 'Install did not deploy the EasyCMD Clink completion script.'
+    if ($migratedAutoRun -notmatch [regex]::Escape('easycmd.exe" shell')) {
+        throw 'Install did not start the self-contained EasyCMD interactive shell.'
     }
     & .\easycmd.exe uninstall | Out-Null
     Write-Host "PASS EasyCMD macro install and uninstall"
@@ -99,13 +94,6 @@ finally {
     }
     else {
         Set-ItemProperty -Path $key -Name AutoRun -Value $originalAutoRun
-    }
-
-    if ($null -eq $completionBackup) {
-        Remove-Item $completionPath -Force -ErrorAction SilentlyContinue
-    }
-    else {
-        [IO.File]::WriteAllBytes($completionPath, $completionBackup)
     }
 
     if ($null -eq $originalLanguage) {

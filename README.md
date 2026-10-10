@@ -26,9 +26,9 @@ Running `easycmd install` refreshes all EasyCMD macros and startup information.
 
 ## Interactive Tab And Help
 
-EasyCMD adds an interactive command guide when [Clink](https://github.com/chrisant996/clink)
-is installed. Run `easycmd install` again after installing Clink; this copies only
-EasyCMD's `easycmd_completion.lua` into the current user's Clink profile.
+EasyCMD includes its own interactive CMD input layer. It does not require Clink
+or any other third-party terminal extension. After `easycmd install`, every new
+CMD window starts the EasyCMD prompt automatically.
 
 | Input | Result |
 | --- | --- |
@@ -39,8 +39,7 @@ EasyCMD's `easycmd_completion.lua` into the current user's Clink profile.
 | `easycmd en` | Switches completion descriptions to English. |
 | `easycmd help` | Prints the interactive-help quick reference. |
 
-Open a new CMD window after switching language to reload the Clink script. The
-completion catalog also includes commonly used Windows tools such as `ncpa.cpl`,
+The language changes immediately. The completion catalog also includes commonly used Windows tools such as `ncpa.cpl`,
 `service.msc`, `taskmgr`, `control`, `regedit`, `winver`, `notepad`, and `calc`.
 
 ## Version And Updates
@@ -88,9 +87,7 @@ after UAC approval when needed.
 easycmd uninstall
 ```
 
-This removes only EasyCMD macros from the current user's CMD AutoRun setting.
-It also removes only EasyCMD's Clink completion script, leaving other Clink
-scripts and settings intact.
+This removes only EasyCMD's current-user CMD AutoRun configuration.
 
 ## Build And Test
 

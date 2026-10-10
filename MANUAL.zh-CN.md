@@ -40,9 +40,9 @@ nslookup abc.cn
 
 ## 3. Tab 补全与 `?` 帮助
 
-安装 [Clink](https://github.com/chrisant996/clink) 后，再执行一次
-`easycmd install`，EasyCMD 会将自己的 `easycmd_completion.lua` 安装到当前用户的
-Clink 配置目录，提供类似网络设备 CLI 的补全和帮助；不会修改或删除其他 Clink 脚本。
+EasyCMD 内置交互式 CMD 输入层，不依赖 Clink 或任何第三方终端增强程序。执行
+`easycmd install` 后，新开的 CMD 会自动进入 EasyCMD 提示符，提供类似网络设备 CLI
+的补全和帮助。
 
 | 输入方式 | 结果 |
 | --- | --- |
@@ -53,7 +53,7 @@ Clink 配置目录，提供类似网络设备 CLI 的补全和帮助；不会修
 | `easycmd en` | 切换为英文补全与帮助说明。 |
 | `easycmd help` | 在普通输出中查看交互帮助速查。 |
 
-执行 `easycmd cn` 或 `easycmd en` 后，新开一个 CMD 窗口即可加载新的说明语言。
+执行 `easycmd cn` 或 `easycmd en` 后，说明语言立即生效。
 补全目录包含常用网络命令及 Windows 工具，例如 `ncpa.cpl`、`service.msc`、`taskmgr`、
 `control`、`regedit`、`winver`、`notepad`、`calc` 等。
 
@@ -101,8 +101,7 @@ UAC 授权完成替换。
 easycmd uninstall
 ```
 
-该操作仅移除当前用户的 EasyCMD 宏和 EasyCMD 自己安装的 Clink 补全脚本，不会影响
-其他 Clink 配置或脚本。
+该操作仅移除当前用户的 EasyCMD AutoRun 配置。
 
 ## 7. 构建与测试
 

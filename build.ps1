@@ -6,7 +6,6 @@ if (-not (Test-Path $compiler)) {
 }
 
 & $compiler /nologo /target:exe /platform:anycpu /optimize+ /r:System.Web.Extensions.dll `
-    /resource:easycmd_completion.lua,EasyCMD.Completion.lua `
     /out:easycmd.exe AssemblyInfo.cs EasyCmd.cs
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
