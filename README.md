@@ -59,7 +59,9 @@ easycmd help
 
 When used inside the EasyCMD interactive prompt, `easycmd update` schedules the
 update and exits that prompt so Windows can replace `easycmd.exe`. A new CMD
-window opens automatically after a successful update.
+window opens only after the copied executable reports the expected new version.
+If an update cannot replace or verify the executable, review
+`%LOCALAPPDATA%\EasyCMD\update.log`.
 
 After `easycmd install`, every newly opened CMD window displays the EasyCMD
 version, copyright, and project URL before the prompt. `easycmd update`

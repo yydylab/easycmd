@@ -73,7 +73,8 @@ easycmd help
 ```
 
 在 EasyCMD 交互提示符中执行 `easycmd update` 后，程序会安排升级并自动退出当前
-交互提示符，以便 Windows 替换正在运行的 `easycmd.exe`。升级成功后会自动打开新的 CMD 窗口。
+交互提示符，以便 Windows 替换正在运行的 `easycmd.exe`。仅在替换后的程序验证为预期新版本后，
+才会自动打开新的 CMD 窗口；若失败，请查看 `%LOCALAPPDATA%\EasyCMD\update.log`。
 
 执行 `easycmd install` 后，每次新开 CMD 窗口都会在提示符前显示 EasyCMD 的版本、
 版权和项目地址。`easycmd update` 会检查 GitHub 最新 Release；有新版本时下载并请求

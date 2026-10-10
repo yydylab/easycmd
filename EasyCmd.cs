@@ -214,7 +214,7 @@ internal static class EasyCmd
                 throw new InvalidOperationException("The downloaded EasyCMD version does not match the GitHub Release.");
             }
 
-            StartUpdater(downloadedFile, Process.GetCurrentProcess().MainModule.FileName);
+            StartUpdater(downloadedFile, Process.GetCurrentProcess().MainModule.FileName, release.Version);
             updateScheduled = true;
             Console.WriteLine("Update scheduled. Approve the UAC prompt to complete the upgrade.");
             return 0;
@@ -277,27 +277,50 @@ internal static class EasyCmd
         return version;
     }
 
-    private static void StartUpdater(string downloadedFile, string targetFile)
+    private static void StartUpdater(string downloadedFile, string targetFile, Version expectedVersion)
     {
         string script = Path.Combine(Path.GetTempPath(), "easycmd-update-" + Guid.NewGuid().ToString("N") + ".cmd");
+        string stateDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "EasyCMD");
+        string logFile = Path.Combine(stateDirectory, "update.log");
+        string versionOutput = Path.Combine(stateDirectory, "update-version.txt");
+        string expectedBanner = "easycmd v" + expectedVersion;
         File.WriteAllLines(script, new[]
         {
             "@echo off",
+            "setlocal EnableExtensions DisableDelayedExpansion",
+            "if not exist " + QuoteForCmd(stateDirectory) + " mkdir " + QuoteForCmd(stateDirectory),
+            "> " + QuoteForCmd(logFile) + " echo EasyCMD update started at %DATE% %TIME%",
+            ">> " + QuoteForCmd(logFile) + " echo Target: " + targetFile,
+            ">> " + QuoteForCmd(logFile) + " echo Expected: " + expectedBanner,
             "set attempts=0",
             ":replace",
-            "move /y " + QuoteForCmd(downloadedFile) + " " + QuoteForCmd(targetFile) + " > nul",
+            "copy /y " + QuoteForCmd(downloadedFile) + " " + QuoteForCmd(targetFile) + " > nul 2>&1",
             "if not errorlevel 1 goto updated",
             "set /a attempts+=1",
-            "if %attempts% GEQ 15 goto failed",
+            ">> " + QuoteForCmd(logFile) + " echo Copy attempt %attempts% failed.",
+            "if %attempts% GEQ 30 goto failed",
             "timeout /t 1 /nobreak > nul",
             "goto replace",
             ":updated",
-            QuoteForCmd(targetFile) + " install > nul",
+            QuoteForCmd(targetFile) + " -v > " + QuoteForCmd(versionOutput) + " 2>&1",
+            "findstr /c:" + QuoteForCmd(expectedBanner) + " " + QuoteForCmd(versionOutput) + " > nul",
+            "if errorlevel 1 goto verification_failed",
+            ">> " + QuoteForCmd(logFile) + " echo Verified: " + expectedBanner,
+            QuoteForCmd(targetFile) + " install >> " + QuoteForCmd(logFile) + " 2>&1",
+            "if errorlevel 1 goto failed",
             "start \"\" \"%ComSpec%\" /k",
             "goto cleanup",
+            ":verification_failed",
+            ">> " + QuoteForCmd(logFile) + " echo Version verification failed.",
+            "type " + QuoteForCmd(versionOutput) + " >> " + QuoteForCmd(logFile),
+            "goto failed",
             ":failed",
-            "echo EasyCMD update failed because the current executable is still in use.",
+            ">> " + QuoteForCmd(logFile) + " echo Update failed. Review this log for details.",
+            "echo EasyCMD update failed. See " + logFile,
             ":cleanup",
+            "del /q " + QuoteForCmd(downloadedFile) + " > nul 2>&1",
             "del \"%~f0\""
         });
 

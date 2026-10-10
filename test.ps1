@@ -42,7 +42,7 @@ foreach ($case in $cases) {
 }
 
 $banner = (& .\easycmd.exe -v) -join "`n"
-foreach ($expected in @('easycmd v0.1.13.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
+foreach ($expected in @('easycmd v0.1.14.0', 'Copyright (c) 2026 yydylab', 'https://github.com/yydylab/easycmd')) {
     if (-not $banner.Contains($expected)) {
         throw "Version banner does not contain '$expected'."
     }
@@ -75,7 +75,7 @@ if ($language -ne 'en') {
 Write-Host "PASS interactive help settings"
 
 $source = Get-Content -Raw .\EasyCmd.cs
-foreach ($expected in @('IsInteractiveUpdateCommand', 'if (updateScheduled)', 'set attempts=0', 'if %attempts% GEQ 15')) {
+foreach ($expected in @('IsInteractiveUpdateCommand', 'if (updateScheduled)', 'set attempts=0', 'if %attempts% GEQ 30', 'copy /y', 'Version verification failed', 'update.log')) {
     if (-not $source.Contains($expected)) {
         throw "Interactive update source does not contain '$expected'."
     }
